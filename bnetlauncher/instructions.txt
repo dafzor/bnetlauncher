@@ -1,0 +1,33 @@
+Purpose
+-------
+This aplication is intended to facilitate the launch of battle.net games from steam with overlay.
+
+Note: If the launcher isn't running when starting the game it will be closed as soon as the game starts,
+      otherwise it will be left running.
+
+
+Howto Use
+---------
+1. Extract the included exe to any location you want
+2. Add the exe to steam as a non-steam game shortcut
+3. On the shortcut properties add one of the following codes *they are case sensitive*
+	WoW	= World of Warcraft
+	D3	= Diablo 3
+	WTCG	= Heartstone
+	Pro	= Overwatch
+	S2	= Starcraft 2
+	Hero	= Heroes of the Storm
+	
+	the result should look something like this:
+		"G:\World of Warcraft\bnetlauncher.exe" WoW
+
+
+Requirements
+------------
+Windows 7 or above (Only really tested on Windows 10)
+.Net Framework 4.5  (included by default in Windows 8 or above) or better.
+Download link: https://www.microsoft.com/en-us/download/details.aspx?id=48130
+
+Contacts
+--------
+I can be reached on by email at daf@madalien.com

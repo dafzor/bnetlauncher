@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
 
 namespace bnetlauncher
 {
@@ -12,15 +11,20 @@ namespace bnetlauncher
     {
         static void Main(string[] args)
         {
-            string bnet_cmd = "battlenet://";
+            Application.EnableVisualStyles();
 
+            //CloseBnetProcess();
+            //return;
+
+            // Parse paramenters
+            string bnet_cmd = "battlenet://";
             if (args.Length > 0)
             {
                 bnet_cmd += args[0].Trim();
             }
             else
             {
-                string message = "Use one of the following **case sensitive** parameters to launch the game:\n" +
+                string message = "Use one of the following *case sensitive* parameters to launch the game:\n" +
                     "WoW\t= World of Warcraft\n" +
                     "D3\t= Diablo 3\n" +
                     "WTCG\t= Heartstone\n" +
@@ -28,103 +32,135 @@ namespace bnetlauncher
                     "S2\t= Starcraft 2\n" +
                     "Hero\t= Heroes of the Storm\n";
 
-                Application.EnableVisualStyles();
                 MessageBox.Show(message, "Howto Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
+            // flag to close the client on exit or not.
+            bool bnet_close = false;
 
-            // is b.net open? launch b.net with parent being explorer
-            if (Process.GetProcessesByName("Battle.net").Length <= 0)
+            // is b.net open? If not open it up and mark it for termination on exit
+            // TODO: Find a way to start b.net launcher without steam attaching overlay
+            if (GetBnetProcessId() == 0)
             {
-                //ProcessCreator.CreateProcess(Properties.Settings.Default.BnetPath, 0);
+                Process.Start("battlenet://");
+                bnet_close = true;
+            }
+
+            // HACK: b.net launcher starts two helper child process, until they're running it will ignore direct launch commands
+            // so we wait for both process to start before continuing.
+            while (Process.GetProcessesByName("Battle.net Helper").Length < 2)
+            {
+                Thread.Sleep(100);
             }
 
 
             // fire up game trough b.net
-            //Process.Start(bnet_cmd);
+            DateTime client_start_date = DateTime.Now;
+            Process.Start(bnet_cmd);
 
-            /*
-            // finds the b.net process, and see's what was the new child process that was started
-            try
+            // Waits for the client to start trough battle.net
+            var game_process_id = 0;
+            do
             {
-                Process bnet_process = Process.GetProcessesByName("Battle.Net")[0];
-            }
-            catch (IndexOutOfRangeException ex)
+                game_process_id = GetLastBnetProcessIdSinceDate(client_start_date);
+            } while (game_process_id == 0);
+
+
+            // copies the game proces arguments
+            Process process = new Process();
+            process.StartInfo = GetProcessStartInfoById(game_process_id);
+
+            // kills the client that's child to the launcher and starts a new one that's child to us
+            Process.GetProcessById(game_process_id).Kill();
+            process.Start();
+
+            // close client if it wasn't started
+            if (bnet_close)
             {
-                MessageBox.Show("Can't find b.net");
+                Process.GetProcessById(GetBnetProcessId()).Kill();
             }
-
-            ;
-
-            /*
-            if (bnet_processes.Length > 0)
-            {
-                int parent_id = bnet_processes[0].Id;
-                List<Process> bnet_childs = GetChildProcesses(parent_id);
-                Process game;
-                foreach (var child in bnet_childs)
-                {
-                    if (child.Id > parent_id && child.ProcessName
-                }
-            }
-
-            //Process[] bnet_childs = bnet_process[0].Id
-
-            foreach(var bnet_p in bnet_processes)
-            {
-
-            }
-
-            // is b.net already running? if not start it without allowing steam to track ittask
-            Process[] processes = Process.GetProcessesByName("Battle.Net");
-            if (processes.Length <= 0)
-            {
-                Process stub = new Process();
-                //stub.StartInfo.FileName = Application.ExecutablePath;
-                stub.StartInfo.FileName = "C:\\Program Files (x86)\\Battle.net\\Battle.net Launcher.exe";
-                //stub.StartInfo.Arguments = "bnet";
-                stub.StartInfo.UseShellExecute = false;
-
-                stub.StartInfo.
-
-                stub.Start();
-                //stub.WaitForExit();
-                //Thread.Sleep(10000);
-            }
-
-            // start game
-            Thread.Sleep(10000);
-            Process.Start(cmd);
-            */
         }
 
 
-        public static List<Process> GetChildProcesses(int process_id)
+        private static ProcessStartInfo GetProcessStartInfoById(int process_id)
         {
-            var results = new List<Process>();
+            var start_info = new ProcessStartInfo();
 
-            // query the management system objects for any process that has the current
-            // process listed as it's parentprocessid
-            string queryText = string.Format("select processid from win32_process where parentprocessid = {0}", process_id);
-            using (var searcher = new ManagementObjectSearcher(queryText))
+            using (var searcher = new ManagementObjectSearcher("SELECT CommandLine, ExecutablePath FROM Win32_Process WHERE ProcessId = " +
+                process_id.ToString()))
             {
-                foreach (var obj in searcher.Get())
+                foreach (var result in searcher.Get())
                 {
-                    object data = obj.Properties["processid"].Value;
-                    if (data != null)
-                    {
-                        // retrieve the process
-                        var childId = Convert.ToInt32(data);
-                        var childProcess = Process.GetProcessById(childId);
+                    start_info.FileName = result["ExecutablePath"].ToString();
 
-                        // ensure the current process is still live
-                        if (childProcess != null)
-                            results.Add(childProcess);
+                    var command_line = result["CommandLine"].ToString();
+                    var cut_off = start_info.FileName.Length;
+
+                    if (command_line[0] == '"')
+                    {
+                        cut_off += 2;
+                    }
+                    start_info.Arguments = command_line.Substring(cut_off);
+                    break;
+                }
+            }
+            return start_info;
+        }
+
+        private static int GetLastBnetProcessIdSinceDate(DateTime date)
+        {
+
+            var last_process_id = 0;
+            using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_Process WHERE " +
+                "CreationDate > '" + ManagementDateTimeConverter.ToDmtfDateTime(date).ToString() + "' AND " +
+                "Name <> 'Battle.net Helper.exe' AND " +
+                "ParentProcessId = " + GetBnetProcessId()))
+            {
+                foreach (var result in searcher.Get())
+                {
+                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
+
+                    if (result_process_id > last_process_id)
+                    {
+                        last_process_id = result_process_id;
                     }
                 }
             }
-            return results;
+            return last_process_id;
+        }
+
+        private static int GetBnetProcessId()
+        {
+            using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.exe'"))
+            {
+                foreach (var result in searcher.Get())
+                {
+                    return Convert.ToInt32(result["ProcessId"]);
+                }
+            }
+
+            return 0;
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindowEx(IntPtr hWndParent, IntPtr hWndChildAfter, string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 wMsg, IntPtr wParam, IntPtr lParam);
+        private const UInt32 WM_MOUSEMOVE = 0x0200;
+
+        private static void CloseBnetProcess()
+        {
+            var bnet_process = Process.GetProcessById(GetBnetProcessId());
+            bnet_process.Kill();
+
+            var tray_handle = FindWindowEx(FindWindow("Shell_TrayWnd", ""), IntPtr.Zero, "TrayNotifyWnd", null);
+            var pager_handle = FindWindowEx(tray_handle, IntPtr.Zero, "SysPager", "");
+            var area_handle = FindWindowEx(pager_handle, IntPtr.Zero, "", "Notification Area");
+            SendMessage(area_handle, WM_MOUSEMOVE, (IntPtr)0, (IntPtr)0);
+
         }
     }
 }
