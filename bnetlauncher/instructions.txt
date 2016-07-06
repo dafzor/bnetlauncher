@@ -1,3 +1,7 @@
+Source
+------
+Downloaded from http://madalien.com/archives/2016/06/battle-net-games-under-steam/
+
 Purpose
 -------
 This aplication is intended to facilitate the launch of battle.net games from steam with overlay.
@@ -19,7 +23,7 @@ Howto Use
 	Hero	= Heroes of the Storm
 	
 	the result should look something like this:
-		"G:\World of Warcraft\bnetlauncher.exe" WoW
+		"G:\Steam\bnetlauncher.exe" WoW
 
 
 Requirements
@@ -31,3 +35,13 @@ Download link: https://www.microsoft.com/en-us/download/details.aspx?id=48130
 Contacts
 --------
 I can be reached on by email at daf@madalien.com
+
+Version History
+---------------
+1.5
++ Added debug logging that outputs to %LOCALAPPDATA%\madalien.com\Bnet Launcher for Steam
+* Potentially fixed issue that made the application crash when game process took too long to
+  start like for example the first boot or non SSD media.
+  
+1.4
+- Public release of the source under GPL3

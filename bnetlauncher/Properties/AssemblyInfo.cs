@@ -17,6 +17,7 @@
 //
 // Contact:
 // daf <daf@madalien.com>
+
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -24,7 +25,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Battle.Net Launcher")]
+[assembly: AssemblyTitle("bnetlauncher")]
 [assembly: AssemblyDescription("Battle.Net Launcher for Steam")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("madalien.com")]
@@ -48,5 +49,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.4.*")]
-//[assembly: AssemblyFileVersion("1.4.*")]
+[assembly: AssemblyVersion("1.5.*")]
+//[assembly: AssemblyFileVersion("1.5.*")]
