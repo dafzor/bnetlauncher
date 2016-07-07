@@ -25,6 +25,19 @@ Howto Use
 	the result should look something like this:
 		"G:\Steam\bnetlauncher.exe" WoW
 
+Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
+          "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
+		  into explorer or the run dialog in windows (WinKey+R)
+
+
+Known Issues
+-------------
+- bnetlauncher does nto check invalid arguments so it will just error out after 15s when not detecting
+  a running game
+- If more then 3 battle.net games are started at the same time some of them will not be auto logged in.
+- Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
+  directory by hand.
+- There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 
 Requirements
 ------------
@@ -36,9 +49,28 @@ Contacts
 --------
 I can be reached on by email at daf@madalien.com
 
+Special Thanks
+--------------
+/u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
+
 Version History
 ---------------
-1.5
+1.6
+* Fixed multiple instances of bnetlauncher being started at the same time
++ Added a lot more safeguards and error checking to every step
++ Added debug log that can be enabled by creating a enablelog.txt file in "%localappdata%\madalien.com\bnetlauncher\"
+
+1.5b4
+* Handle the proxy launchers for Starcraft 2 and HotS properly
+
+1.5b3
+* Fixed issue that would cause launching of games to fail if the working directory set on steam
+  did not match the game's path
+
+1.5b2
+- Made logging continuously append to the existing file.
+
+1.5b
 + Added debug logging that outputs to %LOCALAPPDATA%\madalien.com\Bnet Launcher for Steam
 * Potentially fixed issue that made the application crash when game process took too long to
   start like for example the first boot or non SSD media.
