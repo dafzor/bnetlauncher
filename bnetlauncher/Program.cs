@@ -61,6 +61,20 @@ namespace bnetlauncher
             Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion),
                 false);
 
+            // Log Operating system version and .net runtime version just in case
+            Logger(String.Format("OS: {0}, Runtime: {1}", Environment.OSVersion, Environment.Version));
+
+            // check if WMI service is running, if it's not we wont be able to get any pid
+            if (!IsWMIServiceRunning())
+            {
+                // The WMI service is not running, Inform the user.
+                MessageBox.Show("bnetlauncher has detected that the \"Windows Management Instrumentation\" service is not running.\n" +
+                    "This service is required for bnetlauncher to function properly, please make sure it's enabled, " +
+                    "then try to run bnetlauncher again.\nbnetlauncher will now exit.",
+                    "WMI service not running", MessageBoxButtons.OK, MessageBoxIcon.Question);
+                return; // Exit Application
+            }
+
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it
             // otherwise we simply create it and continue.
@@ -202,6 +216,27 @@ namespace bnetlauncher
             return;
         }
 
+
+        /// <summary>
+        /// Queries the WMI service for it's status and returns true if it's running, false otherwise
+        /// </summary>
+        /// <returns>true of the WMI service is running, false otherwise</returns>
+        private static bool IsWMIServiceRunning()
+        {
+            var sc = new System.ServiceProcess.ServiceController("Winmgmt");
+
+            switch (sc.Status)
+            {
+                case System.ServiceProcess.ServiceControllerStatus.Running:
+                    return true;
+                    //break;
+
+                default:
+                    return false;
+                    //break;
+            }
+        }
+
         /// <summary>
         /// Makes sure the battle.net client is running properly and starts it if not.
         /// </summary>
@@ -215,17 +250,6 @@ namespace bnetlauncher
             if (bnet_pid == 0)
             {
                 Logger("battle.net client not running, trying to start it");
-                //Process.Start("battlenet://");
-
-                //// Sets a flag so we know we where the ones that started battle.net
-                //started_bnet = true;
-
-                //// TODO: Find a way to do this that doesn't feel like a hack.
-
-                //// If battle.net client is starting fresh it will use a intermidiary Battle.net process to start, we need to make
-                //// sure we don't get that process Id but the actual client pid. To work around it we wait 1s before trying to get
-                //// the process id.
-                //Thread.Sleep(1000);
                 StartBnetClient();
                 bnet_pid = GetBnetProcessId();     
             }
@@ -431,12 +455,20 @@ namespace bnetlauncher
         private static int GetBnetProcessId()
         {
             // TODO: What would happen if there's another program with a battle.net.exe running? Should we even care?
-            using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.exe'"))
+            try
             {
-                foreach (var result in searcher.Get())
+                using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.exe'"))
                 {
-                    return Convert.ToInt32(result["ProcessId"]);
+                    foreach (var result in searcher.Get())
+                    {
+                        return Convert.ToInt32(result["ProcessId"]);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger(String.Format("Error finding battle.net client pid. {0}", ex.ToString()));
+                return 0;
             }
             return 0;
         }
