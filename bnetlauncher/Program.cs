@@ -145,8 +145,8 @@ namespace bnetlauncher
             // Make sure battle.net client is running
             if (AssureBnetClientIsRunning() == 0)
             {
-                Logger("Could find the battle.net running and failed to start it. Exiting");
-                MessageBox.Show("Could find the battle.net running and failed to start it.\nExiting application",
+                Logger("Couldn't find the battle.net running and failed to start it. Exiting");
+                MessageBox.Show("Couldn't find the battle.net running and failed to start it.\nExiting application",
                     "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }

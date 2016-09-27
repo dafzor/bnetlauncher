@@ -34,6 +34,8 @@ Known Issues
 -------------
 - bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
   a running game
+- It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client uri handler to
+  start the games, which does not support the PTR versions. I have not found a proper workaround for this.
 - If more then 3 battle.net games are started at the same time some of them will not be auto logged in, this 
   seems to be a limitation with the battle.net client.
 - Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
