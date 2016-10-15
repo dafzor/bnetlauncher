@@ -250,7 +250,19 @@ namespace bnetlauncher
             if (bnet_pid == 0)
             {
                 Logger("battle.net client not running, trying to start it");
-                StartBnetClient();
+                //StartBnetClient();
+                Process.Start("battlenet://");
+
+                // Creates a file signaling that battle.net client was started by us
+                File.Create(client_lock_file);
+
+                // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
+                // to make sure we don't get that process id but the actual client's process id. To work around it we wait
+                // 1s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+                // well (SystemSurvey.exe, Battle.net Helper.exe).
+                // TODO: Find a way to do this that doesn't feel like a hack.
+                Thread.Sleep(2000);
+
                 bnet_pid = GetBnetProcessId();     
             }
 
@@ -261,6 +273,37 @@ namespace bnetlauncher
                 return 0; // Couldn't start the client
             }
 
+            // On launch battle.net client starts a SystemSurvey.exe, this process exists about the same time the client is 
+            // fully launched so we use it to check if the client is fully running, as it will crash if we try to launch a game
+            // before it's ready or in the best case, do nothing
+            bool survey_running = true;
+            DateTime survey_start_time = DateTime.Now;
+            while (survey_running && DateTime.Now.Subtract(survey_start_time).TotalSeconds < 120)
+            {
+                try
+                {
+                    using (var searcher = new ManagementObjectSearcher(
+                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'SystemSurvey.exe'", bnet_pid)))
+                    {
+                        survey_running = searcher.Get().Count > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger(ex.ToString());
+                }
+
+                Thread.Sleep(500);
+            }
+
+            // Did the survey exit or did we timeout?
+            if (survey_running)
+            {
+                Logger("battle.net Helpers did not start.");
+                return 0;
+            }
+
+            /*
             // Are both helper processes running? Check for every 500ms for two minute
             int helper_count = 0;
             DateTime helper_start_time = DateTime.Now;
@@ -288,11 +331,14 @@ namespace bnetlauncher
                 Logger("battle.net Helpers did not start.");
                 return 0;
             }
+           */
 
             // battle.net shoudl be fully running
             Logger("battle.net client is fully running with pid = " + bnet_pid);
             return bnet_pid;
         }
+
+        /*
 
         /// <summary>
         /// Starts the battle.net client and creates a client_lock_file to signal the battle.net client was started
@@ -307,10 +353,13 @@ namespace bnetlauncher
 
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 1s before trying to get the process id.
+            // 1s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+            // well (SystemSurvey.exe, Battle.net Helper.exe).
             // TODO: Find a way to do this that doesn't feel like a hack.
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
         }
+
+        */
 
         /// <summary>
         /// Closes the battle.net client if client_lock_file exists and we're the last running instance of
@@ -513,7 +562,8 @@ namespace bnetlauncher
         public static void Logger(String line, bool append = true)
         {
             if (!File.Exists(Path.Combine(data_path, "enablelog")) &&
-                !File.Exists(Path.Combine(data_path, "enablelog.txt")))
+                !File.Exists(Path.Combine(data_path, "enablelog.txt")) &&
+                !File.Exists(Path.Combine(data_path, "enablelog.txt.txt")))
             {
                 // only enable logging if a file named enablelog exists in 
                 return;

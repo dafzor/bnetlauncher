@@ -62,6 +62,7 @@ Version History
 ---------------
 1.7b
 * Aditional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
+* Changed how it detects battle.net client is running so it will work with browser hardware aceleration off
 
 1.6
 * Fixed multiple instances of bnetlauncher being started at the same time
