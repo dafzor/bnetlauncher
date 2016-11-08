@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+// along with bnetlauncher. If not, see <http://www.gnu.org/licenses/>.
 //
 //
 // Contact:
@@ -49,5 +49,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.7.*")]
-//[assembly: AssemblyFileVersion("1.7.*")]
+[assembly: AssemblyVersion("1.8.*")]
+//[assembly: AssemblyFileVersion("1.8.*")]

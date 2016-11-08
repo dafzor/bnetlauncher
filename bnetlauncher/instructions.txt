@@ -1,29 +1,30 @@
 Source
 ------
-Downloaded from http://madalien.com/archives/2016/06/battle-net-games-under-steam/
+Downloaded from http://madalien.com/stuff/bnetlauncher/
 
 Purpose
 -------
-This aplication is intended to facilitate the launch of battle.net games from steam with overlay.
+This aplication is intended to facilitate the launch of battle.net games from steam with overlay
+while still being auto logged in by the battle.net client.
 
-Note: If the launcher isn't running when starting the game it will be closed as soon as the game starts,
-      otherwise it will be left running.
+Note: If the Battle.net client isn't running when starting the game it will be closed as soon as
+      the game starts, otherwise it will be left running.
 
 
 Howto Use
 ---------
-1. Extract the included exe to any location you want
+1. Extract the included exe to any location you want (ex: steam folder)
 2. Add the exe to steam as a non-steam game shortcut
-3. On the shortcut properties add one of the following codes *they are case sensitive*
-	WoW	= World of Warcraft
-	D3	= Diablo 3
-	WTCG	= Heartstone
-	Pro	= Overwatch
-	S2	= Starcraft 2
-	Hero	= Heroes of the Storm
+3. On the shortcut properties add one of the following parameters:
+	wow		= World of Warcraft
+	d3		= Diablo 3
+	hs		= Heartstone
+	ow		= Overwatch
+	sc2		= Starcraft 2
+	hots	= Heroes of the Storm
 	
 	the result should look something like this:
-		"G:\Steam\bnetlauncher.exe" WoW
+		"G:\Steam\bnetlauncher.exe" wow
 
 Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
           "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
@@ -32,8 +33,10 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
 
 Known Issues
 -------------
+- Users of MSI Afterburner software might experience crashes when both it's overlay and steam try to attach
+  to the game, disabling MSI Afterburner overlay fixes the issue.
 - bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
-  a running game
+  a running game.
 - It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client uri handler to
   start the games, which does not support the PTR versions. I have not found a proper workaround for this.
 - If more then 3 battle.net games are started at the same time some of them will not be auto logged in, this 
@@ -47,21 +50,28 @@ Known Issues
 Requirements
 ------------
 Windows 7 or above (Only really tested on Windows 10)
-.Net Framework 4.5  (included by default in Windows 8 or above) or better.
+.Net Framework 4.5  (already included in Windows 8 or above) or better.
 Download link: https://www.microsoft.com/en-us/download/details.aspx?id=48130
 
 Contacts
 --------
-I can be reached on by email at daf@madalien.com
+I can be reached by email at daf@madalien.com
 
 Special Thanks
 --------------
+/u/fivetwofoureight for creating and allowing me to use his icon.
 /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
 
 Version History
 ---------------
+1.8
++ Added alias to replace the blizzard internal parameters (old shortcuts will still work)
+* Updates and fixes to phrasing and spelling of error messages and instructions.txt
+* Replaced icon since it was copyrighted property of Blizzard with a custom made icon by /u/fivetwofoureight
+- Tagging as v1.8
+
 1.7b
-* Aditional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
++ Aditional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
 * Changed how it detects battle.net client is running so it will work with browser hardware aceleration off
 
 1.6
@@ -86,3 +96,9 @@ Version History
   
 1.4
 - Public release of the source under GPL3
+
+1.?
+- A lot of attempts figuring out how things actually work 
+
+1.0
+- First version I thought worked but actually didn't

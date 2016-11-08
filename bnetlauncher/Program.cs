@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+// along with bnetlauncher. If not, see <http://www.gnu.org/licenses/>.
 //
 //
 // Contact:
@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace bnetlauncher
 {
@@ -40,6 +41,16 @@ namespace bnetlauncher
         [STAThread]
         static void Main(string[] args)
         {
+            // List of known suported games bt Launch key, name and alias
+            var games = new List<BnetGame>();
+            games.Add(new BnetGame("WoW", "World of Warcraft", "wow"));
+            games.Add(new BnetGame("D3", "Diablo 3", "d3"));
+            games.Add(new BnetGame("WTCG", "Heartstone", "hs"));
+            games.Add(new BnetGame("Pro", "Overwatch", "ow"));
+            games.Add(new BnetGame("S2", "Starcraft 2", "sc2"));
+            games.Add(new BnetGame("Hero", "Heroes of the Storm", "hots"));
+
+
             // Needed so when we show a Messagebox it doesn't look like Windows 98
             Application.EnableVisualStyles();
 
@@ -114,30 +125,52 @@ namespace bnetlauncher
                         "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return; // Exit Application
                 }
-            }
+            }            
 
             // Parse the given argument
-            string bnet_cmd = "battlenet://";
-            if (args.Length > 0)
-            {
-                // TODO: Maybe it would be nice to try and correct bad capitalization on arguments?
-                bnet_cmd += args[0].Trim();
-                Logger("Using parameter: " + bnet_cmd);
-            }
-            else
+            if (args.Length <= 0)
             {
                 // No parameters so just Show instructions
-                string message = "Use one of the following *case sensitive* parameters to launch a game:\n" +
-                    "WoW\t= World of Warcraft\n" +
-                    "D3\t= Diablo 3\n" +
-                    "WTCG\t= Heartstone\n" +
-                    "Pro\t= Overwatch\n" +
-                    "S2\t= Starcraft 2\n" +
-                    "Hero\t= Heroes of the Storm\n";
+                string message = "Use one of the following parameters to launch a game:\n";
+
+                foreach (var g in games)
+                {
+                    message += g.Alias + "\t= " + g.Name + "\n";
+                }
 
                 MessageBox.Show(message, "Howto Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Logger("No parameter given, exiting");
                 return; // Exit Application
+            }
+
+            // Retrives the first parameter that should be the game key and checks it against the games list
+            var game_key = args[0].Trim();
+            Logger("Got parameter: " + game_key);
+
+            foreach (var g in games)
+            {
+                if (game_key == g.Key)
+                {
+                    // Valid game key no need to do anything else
+                    Logger("Known key for game '" + g.Name + "'");
+                    break;
+                }
+
+                if (game_key.ToLower() == g.Key.ToLower())
+                {
+                    // Got it but it's not properly capitalized so we fix it
+                    Logger("Got key in wrong case for game '" + g.Name + "'");
+                    game_key = g.Key;
+                    break;
+                }
+
+                if (game_key.ToLower() == g.Alias.ToLower())
+                {
+                    // We got one of the alias so we replace it for the actual key
+                    Logger("Got valid alias for game '" + g.Name + "'");
+                    game_key = g.Key;
+                    break;
+                }
             }
 
             // TODO: Find a way to start battle.net launcher without steam attaching overlay
@@ -154,7 +187,8 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in uri handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Logger(String.Format("Issuing game launch command at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff")));
+            var bnet_cmd = "battlenet://" + game_key;
+            Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), bnet_cmd));
             Process.Start(bnet_cmd);
 
             // Searches for a game started trough the client for 15s
@@ -173,7 +207,8 @@ namespace bnetlauncher
             if (game_process_id == 0)
             {
                 Logger("No child process game found, giving up and exiting");
-                MessageBox.Show("Could not find a game started trough Battle.net Client.\nAborting process.", "Error",
+                MessageBox.Show("Couldn't find a game started trough Battle.net Client.\n" +
+                    "Please check if you're using a valid paramenter.\nAborting process and exiting.", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
@@ -273,7 +308,7 @@ namespace bnetlauncher
                 return 0; // Couldn't start the client
             }
 
-            // On launch battle.net client starts a SystemSurvey.exe, this process exists about the same time the client is 
+            // On launch battle.net client starts a SystemSurvey.exe, this process exits about the same time the client is 
             // fully launched so we use it to check if the client is fully running, as it will crash if we try to launch a game
             // before it's ready or in the best case, do nothing
             bool survey_running = true;
@@ -303,63 +338,10 @@ namespace bnetlauncher
                 return 0;
             }
 
-            /*
-            // Are both helper processes running? Check for every 500ms for two minute
-            int helper_count = 0;
-            DateTime helper_start_time = DateTime.Now;
-            while (helper_count < 2 && DateTime.Now.Subtract(helper_start_time).TotalSeconds < 120)
-            {
-                try
-                {
-                    using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'Battle.net Helper.exe'", bnet_pid)))
-                    {
-                        helper_count = searcher.Get().Count;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger(ex.ToString());
-                }
-
-                Thread.Sleep(100);
-            }
-
-            // Did the helpers start or did we timeout?
-            if (helper_count < 2)
-            {
-                Logger("battle.net Helpers did not start.");
-                return 0;
-            }
-           */
-
             // battle.net shoudl be fully running
             Logger("battle.net client is fully running with pid = " + bnet_pid);
             return bnet_pid;
         }
-
-        /*
-
-        /// <summary>
-        /// Starts the battle.net client and creates a client_lock_file to signal the battle.net client was started
-        /// by bnetlauncher and should be closed again by the last bnetlauncher process to exit.
-        /// </summary>
-        private static void StartBnetClient()
-        {
-            Process.Start("battlenet://");
-
-            // Creates a file signaling that battle.net client was started by us
-            File.Create(client_lock_file);
-
-            // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
-            // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 1s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
-            // well (SystemSurvey.exe, Battle.net Helper.exe).
-            // TODO: Find a way to do this that doesn't feel like a hack.
-            Thread.Sleep(2000);
-        }
-
-        */
 
         /// <summary>
         /// Closes the battle.net client if client_lock_file exists and we're the last running instance of
