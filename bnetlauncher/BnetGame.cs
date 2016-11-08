@@ -24,13 +24,18 @@ namespace bnetlauncher
 {
     class BnetGame
     {
-        public BnetGame(string key, string name, string abbr = "")
+        public BnetGame(string key, string name, string alias = "")
         {
             this.Key = key;
             this.Name = name;
-            this.Alias = abbr;
+            this.Alias = alias;
         }
 
+        /// <summary>
+        /// The key is the parameter used by the battle.net client to launch the game
+        /// using the uri handler battlenet://
+        /// This key is case sensitive.
+        /// </summary>
         public string Key
         {
             get
@@ -43,18 +48,26 @@ namespace bnetlauncher
             }
         }
 
+        /// <summary>
+        /// Alias that can be used as a parameter in bnetlauncher to reference the game, usualy
+        /// the common used abbreviasion for the game.
+        /// This is case insensitive.
+        /// </summary>
         public string Alias
         {
             get
             {
-                return abbr;
+                return alias;
             }
             set
             {
-                abbr = value;
+                alias = value;
             }
         }
 
+        /// <summary>
+        /// The name of the game to which the key is associated to.
+        /// </summary>
         public string Name
         {
             get
@@ -67,8 +80,9 @@ namespace bnetlauncher
             }
         }
 
+
         private string key;
         private string name;
-        private string abbr;
+        private string alias;
     }
 }

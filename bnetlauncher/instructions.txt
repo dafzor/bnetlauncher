@@ -68,7 +68,6 @@ Version History
 + Added alias to replace the blizzard internal parameters (old shortcuts will still work)
 * Updates and fixes to phrasing and spelling of error messages and instructions.txt
 * Replaced icon since it was copyrighted property of Blizzard with a custom made icon by /u/fivetwofoureight
-- Tagging as v1.8
 
 1.7b
 + Aditional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
