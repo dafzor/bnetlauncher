@@ -25,7 +25,6 @@
 // http://stackoverflow.com/questions/5901679/kill-process-tree-programatically-in-c-sharp
 // https://msdn.microsoft.com/en-us/library/yz3w40d4(v=vs.90).aspx
 
-
 using System;
 using System.IO;
 using System.Diagnostics;
@@ -33,6 +32,7 @@ using System.Management;
 using System.Threading;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace bnetlauncher
 {
@@ -42,14 +42,15 @@ namespace bnetlauncher
         static void Main(string[] args)
         {
             // List of known suported games bt Launch key, name and alias
-            var games = new List<BnetGame>();
-            games.Add(new BnetGame("WoW", "World of Warcraft", "wow"));
-            games.Add(new BnetGame("D3", "Diablo 3", "d3"));
-            games.Add(new BnetGame("WTCG", "Heartstone", "hs"));
-            games.Add(new BnetGame("Pro", "Overwatch", "ow"));
-            games.Add(new BnetGame("S2", "Starcraft 2", "sc2"));
-            games.Add(new BnetGame("Hero", "Heroes of the Storm", "hots"));
-
+            var games = new List<BnetGame>
+            {
+                new BnetGame("WoW", "World of Warcraft", "wow"),
+                new BnetGame("D3", "Diablo 3", "d3"),
+                new BnetGame("WTCG", "Heartstone", "hs"),
+                new BnetGame("Pro", "Overwatch", "ow"),
+                new BnetGame("S2", "Starcraft 2", "sc2"),
+                new BnetGame("Hero", "Heroes of the Storm", "hots")
+            };
 
             // Needed so when we show a Messagebox it doesn't look like Windows 98
             Application.EnableVisualStyles();
@@ -73,7 +74,7 @@ namespace bnetlauncher
                 false);
 
             // Log Operating system version and .net runtime version just in case
-            Logger(String.Format("OS: {0}, Runtime: {1}", Environment.OSVersion, Environment.Version));
+            Logger(String.Format("OS: {0}, Runtime: {1}", Environment.OSVersion, Environment.Version));            
 
             // check if WMI service is running, if it's not we wont be able to get any pid
             if (!IsWMIServiceRunning())
@@ -215,8 +216,7 @@ namespace bnetlauncher
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
-            Process process = new Process();
-            process.StartInfo = GetProcessStartInfoById(game_process_id);
+            var process = new Process() { StartInfo = GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
             if (process.StartInfo.Arguments == "" || process.StartInfo.FileName == "")
@@ -290,6 +290,8 @@ namespace bnetlauncher
 
                 // Creates a file signaling that battle.net client was started by us
                 File.Create(client_lock_file);
+                // TODO: In some edge cases the lock file isn't deleted which causes future launches to break.
+                //       Idealy I should try and avoid that.
 
                 // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
                 // to make sure we don't get that process id but the actual client's process id. To work around it we wait
@@ -308,19 +310,21 @@ namespace bnetlauncher
                 return 0; // Couldn't start the client
             }
 
-            // On launch battle.net client starts a SystemSurvey.exe, this process exits about the same time the client is 
-            // fully launched so we use it to check if the client is fully running, as it will crash if we try to launch a game
-            // before it's ready or in the best case, do nothing
-            bool survey_running = true;
-            DateTime survey_start_time = DateTime.Now;
-            while (survey_running && DateTime.Now.Subtract(survey_start_time).TotalSeconds < 120)
+            // On start Battle.net client isn't fully functional, this issuing commands to it will just do nothing, so we need
+            // to wait for it to fully start, to do this we check for the helper processes battle.net helper. Once they start
+            // the battle.net client should be fully functional.
+            // We check every 500ms for 2 minutes.
+            int helper_count = 0;
+            int helper_required = BnetHelperRequired();
+            DateTime helper_start_time = DateTime.Now;
+            while (helper_count < helper_required && DateTime.Now.Subtract(helper_start_time).TotalSeconds < 120)
             {
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'SystemSurvey.exe'", bnet_pid)))
+                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'Battle.net Helper.exe'", bnet_pid)))
                     {
-                        survey_running = searcher.Get().Count > 0;
+                        helper_count = searcher.Get().Count;
                     }
                 }
                 catch (Exception ex)
@@ -328,19 +332,65 @@ namespace bnetlauncher
                     Logger(ex.ToString());
                 }
 
-                Thread.Sleep(500);
+                Thread.Sleep(100);
             }
 
-            // Did the survey exit or did we timeout?
-            if (survey_running)
+            // Did the helpers start or did we timeout?
+            if (helper_count < helper_required)
             {
-                Logger("battle.net Helpers did not start.");
+                Logger("not enough battle.net Helpers started.");
                 return 0;
             }
 
             // battle.net shoudl be fully running
             Logger("battle.net client is fully running with pid = " + bnet_pid);
             return bnet_pid;
+        }
+
+        /// <summary>
+        /// Returns the number of battle.net helper processes that need to be running based on the
+        /// battle.net client setting HardwareAcceleration. If true there should be at least 2 helpers
+        /// otherwise only 1 is required.
+        /// </summary>
+        /// <returns>number of battle.net helper processes required.</returns>
+        private static int BnetHelperRequired()
+        {
+            // Ideally I'd use a Json library and properly parse the battle.net config file, but that
+            // would add a library dependency to the project so instead we'll do the hackish alternative
+            // of just regexing the config file.
+
+            try
+            {
+                // Location of the battle.net client configuration file in JSON
+                var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Battle.net", "Battle.net.config");
+
+                // Read the config file into a string
+                var bnet_config = File.ReadAllText(bnet_config_file);
+
+                // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
+                // if it's ON then the client will have at least 2 Battle.net Helper running.
+                var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
+
+                if (match.Success)
+                {
+                    if (match.Groups[1].Value.Equals("true"))
+                    {
+                        return 2;
+                    }
+                    else
+                    {
+                        // Hardware accelaration is off, so no gpu battle.net helper
+                        return 1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger(ex.ToString());
+            }
+
+            return 2;
         }
 
         /// <summary>
