@@ -37,6 +37,8 @@ Known Issues
   to the game, disabling MSI Afterburner overlay fixes the issue.
 - bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
   a running game.
+- Sometimes battle.net client URI association will break making bnetlauncher unable to work, reinstalling 
+  the client should fix the issue.
 - It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client uri handler to
   start the games, which does not support the PTR versions. I have not found a proper workaround for this.
 - If more then 3 battle.net games are started at the same time some of them will not be auto logged in, this 
@@ -44,7 +46,8 @@ Known Issues
 - Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
   directory by hand.
 - There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
-- On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher
+- On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher, moving the mouse
+  over it will make it disapear.
 - Running bnetlauncher as administrator will break steam overlay if steam is not also run as administrator
 
 Requirements
@@ -64,6 +67,11 @@ Special Thanks
 
 Version History
 ---------------
+1.9
++ Added more common issues to the instructions.
+* Reverted 1.7b changes on how battle.net client is detected and improved them.
+* Updated some error messages to be more helpful
+
 1.8
 + Added alias to replace the blizzard internal parameters (old shortcuts will still work)
 * Updates and fixes to phrasing and spelling of error messages and instructions.txt

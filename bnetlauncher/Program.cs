@@ -208,8 +208,10 @@ namespace bnetlauncher
             if (game_process_id == 0)
             {
                 Logger("No child process game found, giving up and exiting");
-                MessageBox.Show("Couldn't find a game started trough Battle.net Client.\n" +
-                    "Please check if you're using a valid paramenter.\nAborting process and exiting.", "Error",
+                MessageBox.Show("Couldn't find a game started trough battle.net Client.\n" +
+                    "Please check if battle.net can launch games by opening run dialog (winkey+R) and typing: battlenet://S2\n" +
+                    "battle.net client should launch Starcraft 2 or show an error about not having Starcraft 2 installed.\n" +
+                    "Aborting process and exiting.", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
