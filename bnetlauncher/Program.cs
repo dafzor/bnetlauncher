@@ -67,14 +67,10 @@ namespace bnetlauncher
                     ex.ToString()), "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
-            
-
+        
             // Iniciates the log file by setting append to false
             Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion),
                 false);
-
-            // Log Operating system version and .net runtime version just in case
-            Logger(String.Format("OS: {0}, Runtime: {1}", Environment.OSVersion, Environment.Version));            
 
             // check if WMI service is running, if it's not we wont be able to get any pid
             if (!IsWMIServiceRunning())
@@ -86,6 +82,9 @@ namespace bnetlauncher
                     "WMI service not running", MessageBoxButtons.OK, MessageBoxIcon.Question);
                 return; // Exit Application
             }
+
+            // Logs generic Machine information for debugging purposes. 
+            LogMachineInformation();
 
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it
@@ -554,6 +553,124 @@ namespace bnetlauncher
                 return 0;
             }
             return 0;
+        }
+
+        /// <summary>
+        /// Struct to temporarily store Machine information retrived by LogMachineInformation
+        /// </summary>
+        private struct MachineInfo
+        {
+            public string os_name;
+            public string os_bits;
+            public string os_version;
+            public string os_locale;
+            public string cpu_name;
+            //public string cpu_speed;
+            //public string ram_name;
+            public string ram_capacity;
+            public string hdd_name;
+            //public string hdd_capacity;
+            public string gpu_name;
+            public string gpu_driver;
+            public string gpu_ram;
+            //public string mb_name;            
+        }
+
+        /// <summary>
+        /// Writes basic Machine information in the log for debuging purpose.
+        /// </summary>
+        private static void LogMachineInformation()
+        {
+            // This information can't be fully trusted since Windows will lie about it's version if we don't include
+            // explicit support in the app.manifest. 
+            Logger(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
+                (Environment.Is64BitProcess ? "64bit" : "32bit")));
+
+
+            Logger("Getting Machine details:");
+            var machine_info = new MachineInfo();
+
+            try
+            {
+                // Operating System
+                using (var searcher = new ManagementObjectSearcher("SELECT Caption, Version, OSLanguage, OSArchitecture FROM Win32_OperatingSystem"))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        machine_info.os_name = result["Caption"].ToString();
+                        machine_info.os_version = result["Version"].ToString();
+                        machine_info.os_bits = result["OSArchitecture"].ToString();
+                        machine_info.os_locale = result["OSLanguage"].ToString();
+                    }
+                }
+
+                // Motherboard (unnecessary?)
+                //using (var searcher = new ManagementObjectSearcher("SELECT Product FROM Win32_BaseBoard"))
+                //{
+                //    foreach (var result in searcher.Get())
+                //    {
+                //        machine_info.mb_name = result["Product"].ToString();
+                //    }
+                //}
+
+                // CPU
+                using (var searcher = new ManagementObjectSearcher("SELECT Name, CurrentClockSpeed FROM Win32_Processor"))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        machine_info.cpu_name = result["Name"].ToString();
+                        //machine_info.cpu_speed = result["CurrentClockSpeed"].ToString() + "MHz";
+
+                    }
+                }
+
+                // RAM
+                using (var searcher = new ManagementObjectSearcher("SELECT Capacity FROM Win32_PhysicalMemory"))
+                {
+                    long capacity = 0;
+                    foreach (var result in searcher.Get())
+                    {
+                        capacity += Convert.ToInt64(result["Capacity"]);
+                    }
+                    machine_info.ram_capacity = (capacity / Math.Pow(1024, 2)).ToString() + "MB";
+                }
+
+                // HDD
+                using (var searcher = new ManagementObjectSearcher("SELECT Model FROM Win32_DiskDrive"))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        machine_info.hdd_name += result["Model"].ToString() + ", ";
+                    }
+
+                    machine_info.hdd_name = machine_info.hdd_name.Substring(0, machine_info.hdd_name.Length - 2);
+                }
+
+                // GPU
+                using (var searcher = new ManagementObjectSearcher("SELECT Caption, AdapterRAM, DriverVersion FROM Win32_VideoController"))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        machine_info.gpu_name = result["Caption"].ToString();
+                        // Video RAM is given in bytes so we convert it to MB
+                        machine_info.gpu_ram = (Convert.ToInt64(result["AdapterRAM"]) / Math.Pow(1024, 2)).ToString() + "MB";
+                        machine_info.gpu_driver = result["DriverVersion"].ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger(String.Format("Error Getting Machine information. {0}", ex.ToString()));
+            }
+
+            Logger(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
+                machine_info.os_bits, machine_info.os_locale));
+            //Logger(String.Format("MB: {0}", machine_info.mb_name));
+            Logger(String.Format("CPU: {0}; RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
+            Logger(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
+            //Logger(String.Format("RAM: {0}", machine_info.ram_capacity));
+            Logger(String.Format("HDD: {0}", machine_info.hdd_name));
+
         }
 
         /// <summary>
