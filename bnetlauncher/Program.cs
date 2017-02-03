@@ -224,7 +224,8 @@ namespace bnetlauncher
             {
                 Logger("Failed to obtain game parameters. Exiting");
                 MessageBox.Show(
-                    "Failed to obtain game parameters.\nGame should start but steam overlay won't be attached to it.",
+                    "Failed to retrive game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
+                    "It's likely bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
@@ -448,6 +449,8 @@ namespace bnetlauncher
                 Logger(String.Format("Attempt {0} to find start parameters", retry));
                 try
                 {
+                    // IMPORTANT: We use System.Management API because Process.StartInfo is not populated if used on processes that we
+                    //            didn't start with the Start() method. See additional information in Process.StartInfo documentation.
                     using (var searcher = new ManagementObjectSearcher("SELECT CommandLine, ExecutablePath FROM Win32_Process WHERE ProcessId = " +
                         process_id))
                     {

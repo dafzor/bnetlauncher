@@ -37,6 +37,8 @@ Known Issues
   to the game, disabling MSI Afterburner overlay fixes the issue.
 - bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
   a running game.
+- If the game is run as Administrator bnetlauncher will not be able to retrive it's parameters unless it's run
+  as Administrator as well, Steam will also need to be run as Administrator so overlay can work.
 - Sometimes battle.net client URI association will break making bnetlauncher unable to work, reinstalling 
   the client should fix the issue.
 - It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client uri handler to
@@ -69,6 +71,7 @@ Version History
 ---------------
 1.9
 + Added more common issues to the instructions.
++ Added aditional system information reporting to the log
 * Reverted 1.7b changes on how battle.net client is detected and improved them.
 * Updated some error messages to be more helpful
 
