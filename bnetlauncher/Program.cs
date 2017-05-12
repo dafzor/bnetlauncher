@@ -291,9 +291,11 @@ namespace bnetlauncher
                 Process.Start("battlenet://");
 
                 // Creates a file signaling that battle.net client was started by us
-                File.Create(client_lock_file);
-                // TODO: In some edge cases the lock file isn't deleted which causes future launches to break.
-                //       Idealy I should try and avoid that.
+                var file = File.Create(client_lock_file);
+
+                // Explicitly close the file we just created so that when we try to delete the file 
+                // it's not locked causing the next launch to also trigger a close of the client.
+                file.Close();
 
                 // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
                 // to make sure we don't get that process id but the actual client's process id. To work around it we wait
