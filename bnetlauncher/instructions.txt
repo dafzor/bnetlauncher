@@ -69,6 +69,9 @@ Special Thanks
 
 Version History
 ---------------
+1.10
+* Fixed issue where battle.net client would be closed when it shouldn't
+
 1.9
 + Added more common issues to the instructions.
 + Added aditional system information reporting to the log
