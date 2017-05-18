@@ -18,18 +18,21 @@ Howto Use
 1. Extract the included exe to any location you want (ex: steam folder)
 2. Add the exe to steam as a non-steam game shortcut
 3. On the shortcut properties add one of the following parameters:
-	wow		= World of Warcraft
-	d3		= Diablo 3
-	hs		= Heartstone
-	ow		= Overwatch
-	sc2		= Starcraft 2
-	hots	= Heroes of the Storm
+
+|code		|game			|
+| ------------- | --------------------- |
+|wow		| World of Warcraft	|
+|d3		| Diablo 3		|
+|hs		| Heartstone		|
+|ow		| Overwatch		|
+|sc2		| Starcraft 2		|
+|hots		| Heroes of the Storm	|
 	
-	the result should look something like this:
-		"G:\Steam\bnetlauncher.exe" wow
+the result should look something like this:
+	`"G:\Steam\bnetlauncher.exe" wow`
 
 Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
-          "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
+          `"%localappdata%\madalien.com\bnetlauncher\"`, you can open the location by pasting the path
 		  into explorer or the run dialog in windows (WinKey+R)
 
 
