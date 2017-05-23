@@ -105,7 +105,7 @@ namespace bnetlauncher
             {
                 // Unknown problem
                 Logger(ex.ToString());
-                MessageBox.Show("bnetlauncher encontered an unknown error and will now exit\n" + ex.ToString(),
+                MessageBox.Show("bnetlauncher encontered an unknown mutex error and will now exit\n" + ex.ToString(),
                     "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
@@ -187,9 +187,8 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in uri handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            var bnet_cmd = "battlenet://" + game_key;
-            Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), bnet_cmd));
-            Process.Start(bnet_cmd);
+            Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game_key));
+            BnetStartProcess(game_key);
 
             // Searches for a game started trough the client for 15s
             Logger("Searching for new battle.net child processes for the game");
@@ -286,9 +285,8 @@ namespace bnetlauncher
             // The client isn't running so let's start it
             if (bnet_pid == 0)
             {
-                Logger("battle.net client not running, trying to start it");
-                //StartBnetClient();
-                Process.Start("battlenet://");
+                Logger("battle.net client not running, trying to start it");;
+                BnetStartProcess();
 
                 // Creates a file signaling that battle.net client was started by us
                 var file = File.Create(client_lock_file);
@@ -299,7 +297,7 @@ namespace bnetlauncher
 
                 // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
                 // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-                // 1s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+                // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
                 // well (SystemSurvey.exe, Battle.net Helper.exe).
                 // TODO: Find a way to do this that doesn't feel like a hack.
                 Thread.Sleep(2000);
@@ -349,6 +347,29 @@ namespace bnetlauncher
             // battle.net shoudl be fully running
             Logger("battle.net client is fully running with pid = " + bnet_pid);
             return bnet_pid;
+        }
+
+
+        /// <summary>
+        /// Launches a battle.net client uri command (without the battlenet://). 
+        /// </summary>
+        /// <param name="bnet_command">Battle.net client uri command to launch without
+        /// the protocol part "battlenet://", leaving it blank will launch and/or open 
+        /// the battle.net client.</param>
+        private static void BnetStartProcess(string bnet_command = "")
+        {
+            var bnet_cmd = "battlenet://" + bnet_command;
+            try
+            {
+                Process.Start(bnet_cmd);
+            }
+            catch (Exception ex)
+            {
+                Logger(ex.ToString());
+                MessageBox.Show("Failed to execute {0}.\nIt's possible that Battle.net Client install is corrupted, try reinstalling it.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
         }
 
         /// <summary>
