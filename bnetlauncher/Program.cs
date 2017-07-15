@@ -565,7 +565,7 @@ namespace bnetlauncher
             // TODO: What would happen if there's another program with a battle.net.exe running? Should we even care?
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.exe'"))
+                using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.Beta.exe' OR Name = 'Battle.Net.exe'"))
                 {
                     foreach (var result in searcher.Get())
                     {
