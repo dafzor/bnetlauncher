@@ -22,6 +22,7 @@ Howto Use
 	ow		= Overwatch
 	sc2		= Starcraft 2
 	hots	= Heroes of the Storm
+	scr		= Starcraft Remastered
 	
 	the result should look something like this:
 		"G:\Steam\bnetlauncher.exe" wow
@@ -69,6 +70,9 @@ Special Thanks
 
 Version History
 ---------------
+1.13
++ Added alias for Starcraft Remastered
+
 1.12
 + Tried to make it compatible with beta versions of the battle.net client
 

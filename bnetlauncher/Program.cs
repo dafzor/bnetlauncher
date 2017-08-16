@@ -49,7 +49,8 @@ namespace bnetlauncher
                 new BnetGame("WTCG", "Heartstone", "hs"),
                 new BnetGame("Pro", "Overwatch", "ow"),
                 new BnetGame("S2", "Starcraft 2", "sc2"),
-                new BnetGame("Hero", "Heroes of the Storm", "hots")
+                new BnetGame("Hero", "Heroes of the Storm", "hots"),
+                new BnetGame("SCR", "Starcraft Remastered", "scr")
             };
 
             // Needed so when we show a Messagebox it doesn't look like Windows 98
