@@ -27,6 +27,7 @@ Howto Use
 |ow		| Overwatch		|
 |sc2		| Starcraft 2		|
 |hots		| Heroes of the Storm	|
+|scr		| Starcraft Remastered  |
 	
 the result should look something like this:
 	`"G:\Steam\bnetlauncher.exe" wow`
