@@ -23,6 +23,7 @@ Howto Use
 	sc2		= Starcraft 2
 	hots	= Heroes of the Storm
 	scr		= Starcraft Remastered
+	dst2	= Destiny 2
 	
 	the result should look something like this:
 		"G:\Steam\bnetlauncher.exe" wow
@@ -70,6 +71,9 @@ Special Thanks
 
 Version History
 ---------------
+1.14
++ Added alias for Destiny 2
+
 1.13
 + Added alias for Starcraft Remastered
 
