@@ -28,6 +28,7 @@ Howto Use
 |sc2		| Starcraft 2		|
 |hots		| Heroes of the Storm	|
 |scr		| Starcraft Remastered  |
+|dst2		| Destiny 2		|
 	
 the result should look something like this:
 	`"G:\Steam\bnetlauncher.exe" wow`
@@ -66,5 +67,6 @@ Download link: https://www.microsoft.com/en-us/download/details.aspx?id=48130
 
 Special Thanks
 --------------
+github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectivly.
 /u/fivetwofoureight for creating and allowing me to use his icon.
 /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
