@@ -4,15 +4,15 @@ Downloaded from http://madalien.com/stuff/bnetlauncher/
 
 Purpose
 -------
-This aplication is intended to facilitate the launch of battle.net games from steam with overlay
+This application is intended to facilitate the launch of battle.net games from steam with overlay
 while still being auto logged in by the battle.net client.
 
 Note: If the Battle.net client isn't running when starting the game it will be closed as soon as
       the game starts, otherwise it will be left running.
 
 
-Howto Use
----------
+How to Use
+----------
 1. Extract the included exe to any location you want (ex: steam folder)
 2. Add the exe to steam as a non-steam game shortcut
 3. On the shortcut properties add one of the following parameters:
@@ -28,6 +28,9 @@ Howto Use
 	the result should look something like this:
 		"G:\Steam\bnetlauncher.exe" wow
 
+Note: Any parameter not on the list will just show an error, to ignore and continue "-i" can be added
+      after the game parameter so it looks like: "bnetlauncher.exe my_parameter -i"
+
 Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
           "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
 		  into explorer or the run dialog in windows (WinKey+R)
@@ -39,7 +42,7 @@ Known Issues
   to the game, disabling MSI Afterburner overlay fixes the issue.
 - bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
   a running game.
-- If the game is run as Administrator bnetlauncher will not be able to retrive it's parameters unless it's run
+- If the game is run as Administrator bnetlauncher will not be able to retrieve it's parameters unless it's run
   as Administrator as well, Steam will also need to be run as Administrator so overlay can work.
 - Sometimes battle.net client URI association will break making bnetlauncher unable to work, reinstalling 
   the client should fix the issue.
@@ -51,7 +54,7 @@ Known Issues
   directory by hand.
 - There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 - On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher, moving the mouse
-  over it will make it disapear.
+  over it will make it disappear.
 - Running bnetlauncher as administrator will break steam overlay if steam is not also run as administrator
 
 Requirements
@@ -72,6 +75,13 @@ github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support 
 
 Version History
 ---------------
+1.17
+- No longer accepts launch options that aren't on the list, old shortcuts might need to be updated
++ Added a -i parameter to still allow the use of any parameter if the user wants
+* Changed parameters to Launch options in messages to better match Steam's terminology.
+* Improved error code and messages
+* Fixed all the typos?
+
 1.16
 * Strip "-" and "/" from the launch option in case someone adds them
 * Check alias before know launch option for better log messages
@@ -90,14 +100,14 @@ Version History
 + Tried to make it compatible with beta versions of the battle.net client
 
 1.11
-+ Added aditional checks for when battlenet:// uri handler is broken
++ Added additional checks for when battlenet:// URI handler is broken
 
 1.10
 * Fixed issue where battle.net client would be closed when it shouldn't
 
 1.9
 + Added more common issues to the instructions.
-+ Added aditional system information reporting to the log
++ Added additional system information reporting to the log
 * Reverted 1.7b changes on how battle.net client is detected and improved them.
 * Updated some error messages to be more helpful
 
@@ -107,8 +117,8 @@ Version History
 * Replaced icon since it was copyrighted property of Blizzard with a custom made icon by /u/fivetwofoureight
 
 1.7b
-+ Aditional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
-* Changed how it detects battle.net client is running so it will work with browser hardware aceleration off
++ Additional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
+* Changed how it detects battle.net client is running so it will work with browser hardware acceleration off
 
 1.6
 * Fixed multiple instances of bnetlauncher being started at the same time
