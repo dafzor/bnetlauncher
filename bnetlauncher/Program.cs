@@ -24,6 +24,15 @@
 // https://msdn.microsoft.com/en-us/library/aa394372(v=vs.85).aspx
 // http://stackoverflow.com/questions/5901679/kill-process-tree-programatically-in-c-sharp
 // https://msdn.microsoft.com/en-us/library/yz3w40d4(v=vs.90).aspx
+//
+// Starting the battle.net client unattached from the Steam Overlay
+// ================================================================
+// This can probably be achieved by using Task Scheduler and creating a task that starts
+// the battle.net client. It could be used to staart the battle.net client with the game
+// and leave it open. Don't think anyone needs this so leaving the research here in case
+// someone asks for it later.
+// https://stackoverflow.com/questions/7394806/creating-scheduled-tasks
+
 
 using System;
 using System.IO;
