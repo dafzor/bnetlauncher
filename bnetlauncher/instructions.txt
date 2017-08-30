@@ -72,6 +72,10 @@ github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support 
 
 Version History
 ---------------
+1.16
+* Strip "-" and "/" from the launch option in case someone adds them
+* Check alias before know launch option for better log messages
+
 1.15
 * Workaround for Destiny 2 not showing as in-game on steam after launch
 * Made sure battle.net client is closed on error when launched by bnetlauncher

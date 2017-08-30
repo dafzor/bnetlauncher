@@ -149,6 +149,12 @@ namespace bnetlauncher
             var game_key = args[0].Trim();
             Logger("Got parameter: " + game_key);
 
+            // Removes unecessary dash and slashes in case someone tries to use them,
+            // added due to a video tutorial that used a - as part of the parameter.
+            // NOTE: This might be problematic if I ever add aditional parameters or blizzard
+            //       uses them in a game launch option.
+            game_key = game_key.Replace("-", "").Replace("/", "");
+
             foreach (var g in games)
             {
                 if (game_key == g.Key)
@@ -158,18 +164,18 @@ namespace bnetlauncher
                     break;
                 }
 
-                if (game_key.ToLower() == g.Key.ToLower())
-                {
-                    // Got it but it's not properly capitalized so we fix it
-                    Logger("Got key in wrong case for game '" + g.Name + "'");
-                    game_key = g.Key;
-                    break;
-                }
-
                 if (game_key.ToLower() == g.Alias.ToLower())
                 {
                     // We got one of the alias so we replace it for the actual key
                     Logger("Got valid alias for game '" + g.Name + "'");
+                    game_key = g.Key;
+                    break;
+                }
+
+                if (game_key.ToLower() == g.Key.ToLower())
+                {
+                    // Got it but it's not properly capitalized so we fix it
+                    Logger("Got key in wrong case for game '" + g.Name + "'");
                     game_key = g.Key;
                     break;
                 }
