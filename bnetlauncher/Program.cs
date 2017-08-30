@@ -147,7 +147,10 @@ namespace bnetlauncher
 
                 MessageBox.Show(message, "Info: Howto Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Logger("No parameter given, exiting");
-                return; // Exit Application
+
+                 // Exit Application
+                launcher_mutex.Close();
+                return;
             }
 
             // Retrives the first parameter that should be the game key and checks it against the games list
@@ -185,7 +188,7 @@ namespace bnetlauncher
                     break;
                 }
             }
-            
+
             // TODO: Find a way to start battle.net launcher without steam attaching overlay
 
             // Make sure battle.net client is running
@@ -194,7 +197,10 @@ namespace bnetlauncher
                 Logger("Couldn't find the battle.net running and failed to start it. Exiting");
                 MessageBox.Show("Couldn't find the battle.net running and failed to start it.\nExiting application",
                     "Error: Client not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // Exit Application
+                
+                // Exit Application
+                launcher_mutex.Close();
+                return;
             }
 
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
@@ -225,9 +231,12 @@ namespace bnetlauncher
                     "Aborting, will close Battle.net client if it was launched by bnetlauncher.",
                     "Error: Game not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 
+                // Exit Application
+                launcher_mutex.ReleaseMutex();
                 CloseBnetClient();
-                return; // Exit Application
-                }
+                launcher_mutex.Close();
+                return;
+            }
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
@@ -241,8 +250,12 @@ namespace bnetlauncher
                     "Failed to retrieve game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
                     "It's likely bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
                     "Error: Game Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                
+                // Exit Application
+                launcher_mutex.ReleaseMutex();
                 CloseBnetClient();
-                return; // Exit Application
+                launcher_mutex.Close();
+                return;
             }
 
             try
@@ -274,7 +287,7 @@ namespace bnetlauncher
             }
 
             Logger("Exiting");
-            return;
+            launcher_mutex.Close();
         }
 
 
