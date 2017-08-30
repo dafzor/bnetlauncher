@@ -153,43 +153,62 @@ namespace bnetlauncher
                 return;
             }
 
-            // Retrives the first parameter that should be the game key and checks it against the games list
-            var game_key = args[0].Trim();
-            Logger("Got parameter: " + game_key);
+            // Check if the ignore_key flag is passed as a second parameter
+            var param_ignore = false;
+            if (args.Length > 1)
+            {
+                var option = args[1].ToLower().Trim();
+                param_ignore = (option == "-i" || option == "/i");  
+            }
 
-            // Removes unecessary dash and slashes in case someone tries to use them,
-            // added due to a video tutorial that used a - as part of the parameter.
-            // NOTE: This might be problematic if I ever add aditional parameters or blizzard
-            //       uses them in a game launch option.
-            game_key = game_key.Replace("-", "").Replace("/", "");
+            // Retrieves the first parameter that should be the game key and checks it against the games list
+            //  and looks for the key given in our games list, in an attempt to avoid user mistakes we
+            // clean the input by forcing lowercase and strip - and / before comparing it to know alias.
+            var param_game = args[0].Trim();
+            var param_game_clean = param_game.Replace("-", "").Replace("/", "").ToLower();
+            Logger("Given parameter: " + param_game);
 
+            var game_key = "";
             foreach (var g in games)
             {
-                if (game_key == g.Key)
+                if (param_game_clean == g.Alias || param_game_clean == g.Key)
                 {
-                    // Valid game key no need to do anything else
+                    // We got a valid alias so we replace it for the actual key
+                    // set the found_key to true and stop the search.
                     Logger("Known key for game '" + g.Name + "'");
-                    break;
-                }
-
-                if (game_key.ToLower() == g.Alias.ToLower())
-                {
-                    // We got one of the alias so we replace it for the actual key
-                    Logger("Got valid alias for game '" + g.Name + "'");
-                    game_key = g.Key;
-                    break;
-                }
-
-                if (game_key.ToLower() == g.Key.ToLower())
-                {
-                    // Got it but it's not properly capitalized so we fix it
-                    Logger("Got key in wrong case for game '" + g.Name + "'");
                     game_key = g.Key;
                     break;
                 }
             }
 
-            // TODO: Find a way to start battle.net launcher without steam attaching overlay
+            // If the key isn't a know alias and if the ignore flag is not set give a warning about
+            // invalid key.
+            if (game_key == "" && !param_ignore)
+            {
+                Logger(String.Format("Invalid key '{0}' given and ignore flag not set, exiting.", param_game));
+
+                var message = String.Format("Unknown launch option '{0}' given.\n", param_game);
+                message += "\nPlease use one of the know launch options:\n";
+                foreach (var g in games)
+                {
+                    message += g.Alias + "\t= " + g.Name + "\n";
+                }
+                message += "\nIf this is really the launch option you wish to use use add ' -i' after it " +
+                    " to ignore this check and use it anyway, or contact the author to add it.\n" +
+                    "bnetlauncher will now Close.\n";
+
+                MessageBox.Show(message, "Error: Unknown Launch Option",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Exit Application
+                launcher_mutex.Close();
+                return;
+            }
+            if (game_key == "" && param_ignore)
+            {
+                Logger(String.Format("Unknown parameter {0} given with ignore flag set, continuing", param_game));
+                game_key = param_game;
+            }
 
             // Make sure battle.net client is running
             if (AssureBnetClientIsRunning() == 0)
