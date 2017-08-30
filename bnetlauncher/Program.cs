@@ -211,8 +211,9 @@ namespace bnetlauncher
                 MessageBox.Show("Couldn't find a game started trough battle.net Client.\n" +
                     "Please check if battle.net can launch games by opening run dialog (winkey+R) and typing: battlenet://S2\n" +
                     "battle.net client should launch Starcraft 2 or show an error about not having Starcraft 2 installed.\n" +
-                    "Aborting process and exiting.", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Aborting, will close Battle.net client if it was launched by bnetlauncher.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);       
+                CloseBnetClient();
                 return; // Exit Application
             }
         
@@ -228,6 +229,7 @@ namespace bnetlauncher
                     "Failed to retrive game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
                     "It's likely bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CloseBnetClient();
                 return; // Exit Application
             }
 
@@ -249,6 +251,15 @@ namespace bnetlauncher
 
             // Closes the battle.net client (only if we launched it)
             CloseBnetClient();
+
+            // HACK: Force bnetlauncher to stick around so Destiny 2 will still show in-game status on steam.
+            //       This is a bad way to do this and just works around the issue without actually fixing it.
+            //       Hope to find a better solution or that this will be fixed by Destiny 2 launch.
+            if (game_key == "DST2")
+            {
+                Logger("Waiting for destiny 2 to exit");
+                process.WaitForExit();
+            }
 
             Logger("Exiting");
             return;
