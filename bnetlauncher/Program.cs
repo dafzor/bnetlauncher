@@ -66,22 +66,24 @@ namespace bnetlauncher
             {
                 // No Logger call since we can't even create the directory
                 MessageBox.Show(String.Format("Failed to create data directory in '{0}'.\nError: {1}", data_path,
-                    ex.ToString()), "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ex.ToString()), "Error: Write Access", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Can't do a Logger call since we have no write access
                 return; // Exit Application
             }
         
-            // Iniciates the log file by setting append to false
+            // Initiates the log file by setting append to false
             Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion),
                 false);
 
             // check if WMI service is running, if it's not we wont be able to get any pid
             if (!IsWMIServiceRunning())
             {
+                Logger("WMI service not running, Exiting");
                 // The WMI service is not running, Inform the user.
-                MessageBox.Show("bnetlauncher has detected that the \"Windows Management Instrumentation\" service is not running.\n" +
+                MessageBox.Show("The \"Windows Management Instrumentation\" service is not running.\n" +
                     "This service is required for bnetlauncher to function properly, please make sure it's enabled, " +
-                    "then try to run bnetlauncher again.\nbnetlauncher will now exit.",
-                    "WMI service not running", MessageBoxButtons.OK, MessageBoxIcon.Question);
+                    "before trying again.",
+                    "Error: WMI service", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
 
@@ -107,8 +109,8 @@ namespace bnetlauncher
             {
                 // Unknown problem
                 Logger(ex.ToString());
-                MessageBox.Show("bnetlauncher encontered an unknown mutex error and will now exit\n" + ex.ToString(),
-                    "Unknown Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("A mutex exception has occurred:\n" + ex.ToString(),
+                    "Error: Mutex Exceptiona", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
 
@@ -123,24 +125,27 @@ namespace bnetlauncher
                 if (DateTime.Now.Subtract(start).TotalMinutes > 1)
                 {
                     Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
-                    MessageBox.Show("A previous bnetlauncher instance seems to be stuck running.\nAborting.",
-                        "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("A previous bnetlauncher instance seems to have not properly exited.\n" +
+                        "Try using Windows Task Manager to Close it and try again, if the problem persists " +
+                        "report the issue to bnetlauncher author.",
+                        "Error: Stuck Instance", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return; // Exit Application
                 }
             }            
 
-            // Parse the given argument
+            // Parse the given arguments
             if (args.Length <= 0)
             {
                 // No parameters so just Show instructions
-                string message = "Use one of the following parameters to launch a game:\n";
+                var message = "No Launch Option has been set.\n" +
+                    "To launch a game please add one of the following to the launch options:\n";
 
                 foreach (var g in games)
                 {
                     message += g.Alias + "\t= " + g.Name + "\n";
                 }
 
-                MessageBox.Show(message, "Howto Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(message, "Info: Howto Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Logger("No parameter given, exiting");
                 return; // Exit Application
             }
@@ -180,7 +185,7 @@ namespace bnetlauncher
                     break;
                 }
             }
-
+            
             // TODO: Find a way to start battle.net launcher without steam attaching overlay
 
             // Make sure battle.net client is running
@@ -188,11 +193,11 @@ namespace bnetlauncher
             {
                 Logger("Couldn't find the battle.net running and failed to start it. Exiting");
                 MessageBox.Show("Couldn't find the battle.net running and failed to start it.\nExiting application",
-                    "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Error: Client not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return; // Exit Application
             }
 
-            // Fire up game trough battle.net using the built in uri handler, we take the date to make sure we
+            // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
             Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game_key));
@@ -207,7 +212,7 @@ namespace bnetlauncher
 
                 // Waits half a second to avoid weird bug where function would return pid yet would still
                 // be run again for no reason.
-                // TODO: Understand why ocasionaly this loops runs more then once when it returns a pid.
+                // TODO: Understand why occasionaly this loops runs more then once when it returns a pid.
                 Thread.Sleep(500);
             }
 
@@ -217,11 +222,12 @@ namespace bnetlauncher
                 MessageBox.Show("Couldn't find a game started trough battle.net Client.\n" +
                     "Please check if battle.net can launch games by opening run dialog (winkey+R) and typing: battlenet://S2\n" +
                     "battle.net client should launch Starcraft 2 or show an error about not having Starcraft 2 installed.\n" +
-                    "Aborting, will close Battle.net client if it was launched by bnetlauncher.", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);       
+                    "Aborting, will close Battle.net client if it was launched by bnetlauncher.",
+                    "Error: Game not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                
                 CloseBnetClient();
                 return; // Exit Application
-            }
+                }
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
@@ -232,9 +238,9 @@ namespace bnetlauncher
             {
                 Logger("Failed to obtain game parameters. Exiting");
                 MessageBox.Show(
-                    "Failed to retrive game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
+                    "Failed to retrieve game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
                     "It's likely bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Error: Game Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CloseBnetClient();
                 return; // Exit Application
             }
@@ -248,8 +254,8 @@ namespace bnetlauncher
             catch (Exception ex)
             {
                 Logger(ex.ToString());
-                MessageBox.Show("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
+                    "Error: Failed to Launch", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             // Release the mutex to allow another instance of bnetlauncher to grab it and do work
@@ -307,7 +313,7 @@ namespace bnetlauncher
                 Logger("battle.net client not running, trying to start it");;
                 BnetStartProcess();
 
-                // Creates a file signaling that battle.net client was started by us
+                // Creates a file signalling that battle.net client was started by us
                 var file = File.Create(client_lock_file);
 
                 // Explicitly close the file we just created so that when we try to delete the file 
@@ -370,7 +376,7 @@ namespace bnetlauncher
 
 
         /// <summary>
-        /// Launches a battle.net client uri command (without the battlenet://). 
+        /// Launches a battle.net client URI command (without the battlenet://). 
         /// </summary>
         /// <param name="bnet_command">Battle.net client uri command to launch without
         /// the protocol part "battlenet://", leaving it blank will launch and/or open 
@@ -385,8 +391,8 @@ namespace bnetlauncher
             catch (Exception ex)
             {
                 Logger(ex.ToString());
-                MessageBox.Show("Failed to execute {0}.\nIt's possible that Battle.net Client install is corrupted, try reinstalling it.", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to start game.\nIt's possible that Battle.net Client install is corrupted, try reinstalling it.",
+                    "Error: Fail to start game", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             }
         }
@@ -424,7 +430,7 @@ namespace bnetlauncher
                     }
                     else
                     {
-                        // Hardware accelaration is off, so no gpu battle.net helper
+                        // Hardware acceleration is off, so no gpu battle.net helper
                         return 1;
                     }
                 }
@@ -445,10 +451,11 @@ namespace bnetlauncher
         {
             try
             {
-                // Did we start the battle.neet launcher?
+                // Did we start the battle.net launcher?
                 if (File.Exists(client_lock_file))
                 {
-                    // Wait until every other process finishes up.
+                    // Attempts to get a lock on the mutex immediately, if we get true we did it and there's
+                    // no other bnetlauncher running, so we clean up.
                     if (launcher_mutex.WaitOne(0))
                     {
                         Logger("Closing battle.net client.");
@@ -470,10 +477,10 @@ namespace bnetlauncher
 
         /// <summary>
         /// Returns a filled ProcessStartInfo class with the arguments used to launch the process with the given id.
-        /// The function will try retry_count before giving up and trowing an exeption. Each retry waits 100ms.
+        /// The function will try retry_count before giving up and throwing an exception. Each retry waits 100ms.
         /// </summary>
         /// <param name="process_id">Process Id of the process which arguments you want copied.</param>
-        /// <param name="retry_count">The number of times it will try to adquire the information before it fails.
+        /// <param name="retry_count">The number of times it will try to acquire the information before it fails.
         /// Defaults to 100 tries.</param>
         /// <returns>ProcessStartInfo with FileName and Arguments set to the same ones used in the given process
         /// id.</returns>
@@ -482,7 +489,7 @@ namespace bnetlauncher
             var start_info = new ProcessStartInfo();
 
             // IMPORTANT: If the game is slow to launch (computer just booted), it's possible that it will return a pid but then
-            //            fail to retrive the start_info, thus we do this retry cycle to make sure we actually get the information
+            //            fail to retrieve the start_info, thus we do this retry cycle to make sure we actually get the information
             //            we need.
             int retry = 1;
             bool done = false;
@@ -601,7 +608,7 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Struct to temporarily store Machine information retrived by LogMachineInformation
+        /// Struct to temporarily store Machine information retrieved by LogMachineInformation
         /// </summary>
         private struct MachineInfo
         {
@@ -622,7 +629,7 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Writes basic Machine information in the log for debuging purpose.
+        /// Writes basic Machine information in the log for debugging purpose.
         /// </summary>
         private static void LogMachineInformation()
         {
@@ -719,7 +726,7 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Kill a process tree recursivly
+        /// Kill a process tree recursively
         /// </summary>
         /// <param name="process_id">Process ID.</param>
         private static void KillProcessAndChildren(int process_id)
@@ -749,7 +756,7 @@ namespace bnetlauncher
 
         /// <summary>
         /// Logger function for debugging. It will output a line of text with current datetime in a log file per
-        /// instance. The log file will only be writen if a "enablelog" or "enablelog.txt" file exists in the
+        /// instance. The log file will only be written if a "enablelog" or "enablelog.txt" file exists in the
         /// data_path.
         /// </summary>
         /// <param name="line">Line to write to the log</param>
