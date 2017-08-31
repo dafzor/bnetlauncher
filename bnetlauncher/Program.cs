@@ -114,10 +114,12 @@ namespace bnetlauncher
             if (!IsBnetClientUriHandlerPresent())
             {
                 // Show message asking if user wants to try and repair
-                var reply = MessageBox.Show("battle.net client URI associations seems broken.\n" +
-                    "It's neccessary for bnetlauncher to function properly, it's recomended to reinstall the battle.net client.\n" +
-                    "If reinstalation has not solved a repair can be attempted, this will require Admnistration rights.\n" +
-                    "Would you like to attempt a repair? ", "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var reply = MessageBox.Show("Some of the battle.net client functionality seem to be missing, without it bnetlauncher" +
+                    " will not be able to function. Please reinstall the battle.net to fix the situation.\n\n" +
+                    "Alternativly, if you're still getting this message after reinstaling the client a repair can be attempted," +
+                    " this will create the missing registry keys and prompt you to add them to your registry (you must answer yes).\n\n" +
+                    "Would you like to attempt the repair?\nIf you choose No bnetlauncher will exit.",
+                    "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 // call repair or not and exit
                 if (reply == DialogResult.Yes)
@@ -381,21 +383,23 @@ namespace bnetlauncher
             try
             {
                 // Does the battle.net URI registry key exists?
-                var battlenet_regkey = Registry.ClassesRoot.OpenSubKey("Blizzard.URI.Battlenet\\shell\\open\\command");
-                if (battlenet_regkey == null)
+                using (var battlenet_regkey = Registry.ClassesRoot.OpenSubKey(@"Blizzard.URI.Battlenet\shell\open\command"))
                 {
-                    Logger("battlenet URI subkey doesn't exist");
-                    return false;
-                }
+                    if (battlenet_regkey == null)
+                    {
+                        Logger("battlenet URI subkey doesn't exist");
+                        return false;
+                    }
 
-                // does it actually properly link to the battle.net exe?
-                var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", GetBnetClientPath());
-                var actual_value = battlenet_regkey.GetValue("").ToString();
+                    // does it actually properly link to the battle.net exe?
+                    var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", GetBnetClientPath());
+                    var actual_value = battlenet_regkey.GetValue("").ToString();
 
-                if (valid_value.ToLower() == actual_value.ToLower())
-                {
-                    Logger("battlenet URI handler appears to present and correct");
-                    return true;
+                    if (valid_value.ToLower() == actual_value.ToLower())
+                    {
+                        Logger("battlenet URI handler appears to present and correct");
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -413,8 +417,34 @@ namespace bnetlauncher
         /// </summary>
         private static void RepairBnetClientUriHandler()
         {
+            var reg_content = String.Join("\n",
+                @"Windows Registry Editor Version 5.00",
+                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet]",
+                @"@= ""URL:Blizzard Battle.net Protocol""",
+                @"""URL Protocol"" = ""{0}""",
+                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\DefaultIcon]",
+                @"@=""\""{0}\"",0""",
+                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell]",
+                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open]",
+                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open\command]",
+                @"@= ""\""{0}\"" \""%1\""""");
+
+            // Creates the battle.net path and replaces \ with \\ since that's what's used in registry files
+            var bnet_path = Path.Combine(GetBnetClientPath(), "Battle.net.exe").Replace("\\", "\\\\");
+            var reg_file = Path.Combine(data_path, "battlenet_uri_fix.reg");
+
             // create reg file with valid entries
-            // Process.Start to insert it into the registry
+            using (var file = new StreamWriter(reg_file))
+            {
+                file.Write(String.Format(reg_content, bnet_path));
+            }
+
+            // Call regedit to merge reg file to registry and wait
+            var process = Process.Start(reg_file);
+            process.WaitForExit();
+
+            // clean up
+            File.Delete(reg_file);
         }
 
         /// <summary>
