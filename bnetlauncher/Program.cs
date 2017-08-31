@@ -32,6 +32,14 @@
 // and leave it open. Don't think anyone needs this so leaving the research here in case
 // someone asks for it later.
 // https://stackoverflow.com/questions/7394806/creating-scheduled-tasks
+//
+// Ideas that might or may not be implemented
+// ==========================================
+// * add code to repair battlenet URI association (fix some people having it broken)
+// * start battle.net client trough task scheduler (so overlay doesn't get attached to the launcher)
+// * implement a reusable Form to replace MessageBox (easier to copy text, aditional functionality, etc) 
+// * logger viewer on error and send report to author button (streamline issue reporting)
+// * clean up for internacionalization (translations)
 
 
 using System;
@@ -42,6 +50,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 
 namespace bnetlauncher
 {
@@ -98,6 +107,27 @@ namespace bnetlauncher
 
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
+
+            // Checks if the battle.net client URI handler is registered in the registry
+            if (!IsBnetClientUriHandlerPresent())
+            {
+                // Show message asking if user wants to try and repair
+                var reply = MessageBox.Show("battle.net client URI associations seems broken.\n" +
+                    "It's neccessary for bnetlauncher to function properly, it's recomended to reinstall the battle.net client.\n" +
+                    "If reinstalation has not solved a repair can be attempted, this will require Admnistration rights.\n" +
+                    "Would you like to attempt a repair? ", "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                // call repair or not and exit
+                if (reply == DialogResult.Yes)
+                {
+                    RepairBnetClientUriHandler();
+                }
+                else
+                {
+                    Logger("User chose to not attempt repair, exiting");
+                    return;
+                }
+            }
 
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it
@@ -336,6 +366,82 @@ namespace bnetlauncher
                 default:
                     return false;
                     //break;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to verify if the battle.net client URI handler is present in the registry.
+        /// This however can't check if it's actually functional.
+        /// </summary>
+        /// <returns>true if everything seems to be in order, false otherwise.</returns>
+        private static bool IsBnetClientUriHandlerPresent()
+        {
+            try
+            {
+                // Does the battle.net URI registry key exists?
+                var battlenet_regkey = Registry.ClassesRoot.OpenSubKey("Blizzard.URI.Battlenet\\shell\\open\\command");
+                if (battlenet_regkey == null)
+                {
+                    Logger("battlenet URI subkey doesn't exist");
+                    return false;
+                }
+
+                // does it actually properly link to the battle.net exe?
+                var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", GetBnetClientPath());
+                var actual_value = battlenet_regkey.GetValue("").ToString();
+
+                if (valid_value.ToLower() == actual_value.ToLower())
+                {
+                    Logger("battlenet URI handler appears to present and correct");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger("Exception when attempting to determine if battle.net URI is present:");
+                Logger(ex.ToString());
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// NYI: Attempts to repair battle.net URI handler by creating a reg file with the missing entries
+        /// and prompting the user to add them to their registry. This method was chosen to avoid elevating
+        /// bnetlauncher itself to administrator rights.
+        /// </summary>
+        private static void RepairBnetClientUriHandler()
+        {
+            // create reg file with valid entries
+            // Process.Start to insert it into the registry
+        }
+
+        /// <summary>
+        /// Returns the installation folder of the battle.net client using the installation path
+        /// stored in the uninstall entry.
+        /// </summary>
+        /// <returns>The path to the battle.net client folder without trailing slash</returns>
+        private static string GetBnetClientPath()
+        {
+            try
+            {
+                // Opens the uninstall entry on the battle.net client and retrives the InstallLocation key to get the path
+                var bnet_uninstall_key =
+                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Battle.net");
+                // BUG: This is assuming 64bit windows, Windows 32bit will fail
+
+                var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
+                if (bnet_path == "")
+                {
+                    Logger("Failed to retrive path from battle.net uninstall entry");
+                }
+
+                return bnet_path;
+            }
+            catch (Exception ex)
+            {
+                Logger("Exeption while trying to retrive battle.net client path:");
+                Logger(ex.ToString());
+                return "";
             }
         }
 
