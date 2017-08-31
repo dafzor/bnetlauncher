@@ -21,9 +21,11 @@
 // References:
 // https://www.reddit.com/r/Overwatch/comments/3tfrv5/guide_how_to_use_steam_overlay_with_the_blizzard/
 // http://www.swtor.com/community/showthread.php?t=94152
-// https://msdn.microsoft.com/en-us/library/aa394372(v=vs.85).aspx
+// https://msdn.microsoft.com/en-us/library/aa394372(v=vs.85).aspx (Win32_Process class)
 // http://stackoverflow.com/questions/5901679/kill-process-tree-programatically-in-c-sharp
-// https://msdn.microsoft.com/en-us/library/yz3w40d4(v=vs.90).aspx
+// https://msdn.microsoft.com/en-us/library/yz3w40d4(v=vs.90).aspx (Mutex.OpenExisting Method (String, MutexRights))
+// https://msdn.microsoft.com/en-us/library/aa767914(v=vs.85).aspx (Registering an Application to a URI Scheme)
+// https://stackoverflow.com/questions/2039186/reading-the-registry-and-wow6432node-key
 //
 // Starting the battle.net client unattached from the Steam Overlay
 // ================================================================
@@ -424,22 +426,25 @@ namespace bnetlauncher
         {
             try
             {
-                // Opens the uninstall entry on the battle.net client and retrives the InstallLocation key to get the path
-                var bnet_uninstall_key =
-                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Battle.net");
-                // BUG: This is assuming 64bit windows, Windows 32bit will fail
-
-                var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
-                if (bnet_path == "")
+                // Opens the registry in 32bit mode since in 64bits battle.net uninstall entry is under Wow6432Node Key
+                using (var registry = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
                 {
-                    Logger("Failed to retrive path from battle.net uninstall entry");
-                }
+                    // goes to the uninstall entry on the battle.net client and retrives the InstallLocation key to get the path
+                    using (var bnet_uninstall_key = registry.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Battle.net"))
+                    {
+                        var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
+                        if (bnet_path == "")
+                        {
+                            Logger("Failed to retrive path from battle.net uninstall entry");
+                        }
 
-                return bnet_path;
+                        return bnet_path;
+                    }
+                }
             }
             catch (Exception ex)
             {
-                Logger("Exeption while trying to retrive battle.net client path:");
+                Logger("Exception while trying to retrive battle.net client path:");
                 Logger(ex.ToString());
                 return "";
             }
