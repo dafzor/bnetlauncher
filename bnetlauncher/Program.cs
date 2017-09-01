@@ -124,7 +124,13 @@ namespace bnetlauncher
                 // call repair or not and exit
                 if (reply == DialogResult.Yes)
                 {
-                    RepairBnetClientUriHandler();
+                    var did_repair = RepairBnetClientUriHandler();
+                    if (!did_repair && !IsBnetClientUriHandlerPresent())
+                    {
+                        MessageBox.Show("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
+                            "Error: Failed Repair", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
                 }
                 else
                 {
@@ -415,7 +421,8 @@ namespace bnetlauncher
         /// and prompting the user to add them to their registry. This method was chosen to avoid elevating
         /// bnetlauncher itself to administrator rights.
         /// </summary>
-        private static void RepairBnetClientUriHandler()
+        /// <returns>Returns if the repair was completed or not</returns>
+        private static bool RepairBnetClientUriHandler()
         {
             var reg_content = String.Join("\n",
                 @"Windows Registry Editor Version 5.00",
@@ -439,12 +446,22 @@ namespace bnetlauncher
                 file.Write(String.Format(reg_content, bnet_path));
             }
 
-            // Call regedit to merge reg file to registry and wait
-            var process = Process.Start(reg_file);
-            process.WaitForExit();
+            // Call regedit with the silent switch to merge reg file to registry and wait, this still shows
+            // the UAC prompt that the user may still cancel causing an exception which we check for.
+            try
+            {
+                var process = Process.Start("regedit.exe", String.Format("/s \"{0}\"", reg_file));
+                process.WaitForExit();
+            }
+            catch (Exception ex)
+            {
+                Logger(ex.ToString());
+                return false;
+            }
 
             // clean up
             File.Delete(reg_file);
+            return true;
         }
 
         /// <summary>
