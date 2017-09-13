@@ -44,24 +44,22 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
 
 Known Issues
 -------------
-- Users of MSI Afterburner software might experience crashes when both it's overlay and steam try to attach
-  to the game, disabling MSI Afterburner overlay fixes the issue.
-- bnetlauncher does not check invalid game arguments so it will just error out after 15s when not detecting
-  a running game.
-- If the game is run as Administrator bnetlauncher will not be able to retrieve it's parameters unless it's run
-  as Administrator as well, Steam will also need to be run as Administrator so overlay can work.
-- Sometimes battle.net client URI association will break making bnetlauncher unable to work, reinstalling 
-  the client should fix the issue.
-- It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client uri handler to
-  start the games, which does not support the PTR versions. I have not found a proper workaround for this.
-- If more then 3 battle.net games are started at the same time some of them will not be auto logged in, this 
-  seems to be a limitation with the battle.net client.
+- Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
+  with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
+- The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
+  one of them is running has Administrator/Elevated Permissions, then all of them must also be run has
+  Administrator/Elevated Permissions.
+- It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client URI handler to
+  start the games, which does not support the PTR versions. I haven't found a solution for this.
+- If bnetlauncher is used to start multiple games at the same time the last ones to launch will not be automaticly
+   signed in.
+- Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
+  one instance to be run at the same time.
 - Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
   directory by hand.
 - There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 - On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher, moving the mouse
   over it will make it disappear.
-- Running bnetlauncher as administrator will break steam overlay if steam is not also run as administrator
 
 Requirements
 ------------
