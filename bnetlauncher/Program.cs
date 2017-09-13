@@ -194,6 +194,9 @@ namespace bnetlauncher
                     message += g.Alias + "\t= " + g.Name + "\n";
                 }
 
+                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
+                launcher_mutex.ReleaseMutex();
+
                 MessageBox.Show(message, "Info: How to Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Logger("No parameter given, exiting");
 
@@ -246,6 +249,9 @@ namespace bnetlauncher
                     " to ignore this check and use it anyway, or contact the author to add it.\n" +
                     "bnetlauncher will now Close.\n";
 
+                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
+                launcher_mutex.ReleaseMutex();
+
                 MessageBox.Show(message, "Error: Unknown Launch Option",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
 
@@ -263,6 +269,7 @@ namespace bnetlauncher
             if (AssureBnetClientIsRunning() == 0)
             {
                 Logger("Couldn't find the battle.net running and failed to start it. Exiting");
+
                 MessageBox.Show("Couldn't find the battle.net running and failed to start it.\nExiting application",
                     "Error: Client not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 
@@ -293,14 +300,17 @@ namespace bnetlauncher
             if (game_process_id == 0)
             {
                 Logger("No child process game found, giving up and exiting");
+
+                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
+                launcher_mutex.ReleaseMutex();
+
                 MessageBox.Show("Couldn't find a game started trough battle.net Client.\n" +
-                    "Please check if battle.net can launch games by opening run dialog (winkey+R) and typing: battlenet://S2\n" +
-                    "battle.net client should launch Starcraft 2 or show an error about not having Starcraft 2 installed.\n" +
-                    "Aborting, will close Battle.net client if it was launched by bnetlauncher.",
+                    "Please check if battle.net did not encounter an error and the game can be launched " +
+                    "normally from the battle.net client.\n\n" +
+                    "bnetlauncher will now exit.",
                     "Error: Game not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 
                 // Exit Application
-                launcher_mutex.ReleaseMutex();
                 CloseBnetClient();
                 launcher_mutex.Close();
                 return;
@@ -314,13 +324,18 @@ namespace bnetlauncher
             if (process.StartInfo.Arguments == "" || process.StartInfo.FileName == "")
             {
                 Logger("Failed to obtain game parameters. Exiting");
+
+                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
+                launcher_mutex.ReleaseMutex();
+
                 MessageBox.Show(
-                    "Failed to retrieve game parameters.\nGame should start but steam overlay won't be attached to it.\n" +
-                    "It's likely bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
+                    "Failed to retrieve game parameters.\nGame might start but steam overlay won't be attached to it.\n" +
+                    "This can happen if the game is no longer running (Starcraft Remastered can only have one running instance) " +
+                    "or when bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
                     "Error: Game Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 
                 // Exit Application
-                launcher_mutex.ReleaseMutex();
+                
                 CloseBnetClient();
                 launcher_mutex.Close();
                 return;
@@ -680,10 +695,10 @@ namespace bnetlauncher
         /// </summary>
         /// <param name="process_id">Process Id of the process which arguments you want copied.</param>
         /// <param name="retry_count">The number of times it will try to acquire the information before it fails.
-        /// Defaults to 100 tries.</param>
+        /// Defaults to 50 tries.</param>
         /// <returns>ProcessStartInfo with FileName and Arguments set to the same ones used in the given process
         /// id.</returns>
-        private static ProcessStartInfo GetProcessStartInfoById(int process_id, int retry_count = 100)
+        private static ProcessStartInfo GetProcessStartInfoById(int process_id, int retry_count = 50)
         {
             var start_info = new ProcessStartInfo();
 
