@@ -46,7 +46,7 @@ namespace bnetlauncher
                 // Creates data_path directory if it doesn't exist
                 Directory.CreateDirectory(Shared.DataPath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

@@ -321,7 +321,7 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Enum for the types of Message ShowMessageAndExit can show.
+        /// Enumeration for the types of Message ShowMessageAndExit can show.
         /// </summary>
         private enum MessageType { Error, Warning, Info};
 
