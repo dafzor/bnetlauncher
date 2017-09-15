@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2016 madalien.com
+﻿// Copyright (C) 2016-2017 madalien.com
 // This file is part of bnetlauncher.
 //
 // bnetlauncher is free software: you can redistribute it and/or modify
@@ -50,9 +50,6 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 using System.Windows.Forms;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using Microsoft.Win32;
 
 namespace bnetlauncher
 {
@@ -61,57 +58,35 @@ namespace bnetlauncher
         [STAThread]
         static void Main(string[] args)
         {
-            // List of known supported games by Launch key, name and alias
-            var games = new List<BnetGame>
-            {
-                new BnetGame("WoW", "World of Warcraft", "wow"),
-                new BnetGame("D3", "Diablo 3", "d3"),
-                new BnetGame("WTCG", "Heartstone", "hs"),
-                new BnetGame("Pro", "Overwatch", "ow"),
-                new BnetGame("S2", "Starcraft 2", "sc2"),
-                new BnetGame("Hero", "Heroes of the Storm", "hots"),
-                new BnetGame("SCR", "Starcraft Remastered", "scr"),
-                new BnetGame("DST2", "Destiny 2", "dst2")
-            };
-
             // Needed so when we show a message box it doesn't look like Windows 98
             Application.EnableVisualStyles();
 
-            try
-            {
-                // Creates data_path directory if it doesn't exist
-                Directory.CreateDirectory(data_path);
-            }
-            catch(Exception ex)
+            if (!Shared.CreateDataPath())
             {
                 // No Logger call since we can't even create the directory
-                MessageBox.Show(String.Format("Failed to create data directory in '{0}'.\nError: {1}", data_path,
-                    ex.ToString()), "Error: Write Access", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessageAndExit(String.Format("Failed to create data directory in '{0}'.\n", Shared.DataPath),
+                    "Error: Write Access");
                 // Can't do a Logger call since we have no write access
-                return; // Exit Application
             }
         
             // Initiates the log file by setting append to false
-            Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion),
-                false);
+            Shared.Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion), false);
 
             // check if WMI service is running, if it's not we wont be able to get any process ID
             if (!IsWMIServiceRunning())
             {
-                Logger("WMI service not running, Exiting");
+                Shared.Logger("WMI service not running, Exiting");
                 // The WMI service is not running, Inform the user.
-                MessageBox.Show("The \"Windows Management Instrumentation\" service is not running.\n" +
-                    "This service is required for bnetlauncher to function properly, please make sure it's enabled, " +
-                    "before trying again.",
-                    "Error: WMI service", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // Exit Application
+                ShowMessageAndExit("The \"Windows Management Instrumentation\" service is not running.\n" +
+                    "This service is required for bnetlauncher to function properly, please make sure it's enabled, before trying again.",
+                    "WMI service not running");
             }
 
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
 
             // Checks if the battle.net client URI handler is registered in the registry
-            if (!IsBnetClientUriHandlerPresent())
+            if (!BnetClient.IsUriHandlerPresent())
             {
                 // Show message asking if user wants to try and repair
                 var reply = MessageBox.Show("Some of the battle.net client functionality seem to be missing, without it bnetlauncher" +
@@ -124,17 +99,17 @@ namespace bnetlauncher
                 // call repair or not and exit
                 if (reply == DialogResult.Yes)
                 {
-                    var did_repair = RepairBnetClientUriHandler();
-                    if (!did_repair && !IsBnetClientUriHandlerPresent())
+                    var did_repair = BnetClient.RepairUriHandler();
+                    if (!did_repair && !BnetClient.IsUriHandlerPresent())
                     {
-                        MessageBox.Show("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
-                            "Error: Failed Repair", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
+                        ShowMessageAndExit("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
+                            "Failed Repair");
                     }
+                    // continue normal execution
                 }
                 else
                 {
-                    Logger("User choose to not attempt repair, exiting");
+                    Shared.Logger("User choose to not attempt repair, exiting");
                     return;
                 }
             }
@@ -145,22 +120,21 @@ namespace bnetlauncher
             // This tries to avoid two instances of bnetlauncher from swapping the games they're launching.
             try
             {
-                Logger("Checking for other bnetlauncher processes");
+                Shared.Logger("Checking for other bnetlauncher processes");
                 launcher_mutex = Mutex.OpenExisting(mutex_name);
             }
             catch (WaitHandleCannotBeOpenedException)
             {
                 // Named Mutex doesn't exist yet, so we'll create it
-                Logger("No other bnetlauncher detected");
+                Shared.Logger("No other bnetlauncher detected");
                 launcher_mutex = new Mutex(false, mutex_name);
             }
             catch (Exception ex)
             {
                 // Unknown problem
-                Logger(ex.ToString());
-                MessageBox.Show("A mutex exception has occurred:\n" + ex.ToString(),
-                    "Error: Mutex Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // Exit Application
+                Shared.Logger(ex.ToString());
+                ShowMessageAndExit("A mutex exception has occurred:\n" + ex.ToString(),
+                    "Mutex Exception");
             }
 
             // Waits for the mutex to be released before continuing, writes a message every second for debug purposes
@@ -168,17 +142,16 @@ namespace bnetlauncher
             var start = DateTime.Now;
             while (!launcher_mutex.WaitOne(1000))
             {
-                Logger("Waiting for another bnetlauncher instance to finish.");
+                Shared.Logger("Waiting for another bnetlauncher instance to finish.");
 
                 // If we don't get released for over a minute it's likely something went very wrong so we quit.
                 if (DateTime.Now.Subtract(start).TotalMinutes > 1)
                 {
-                    Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
-                    MessageBox.Show("A previous bnetlauncher instance seems to have not properly exited.\n" +
+                    Shared.Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
+                    ShowMessageAndExit("A previous bnetlauncher instance seems to have not properly exited.\n" +
                         "Try using Windows Task Manager to Close it and try again, if the problem persists " +
                         "report the issue to bnetlauncher author.",
-                        "Error: Stuck Instance", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Exit Application
+                        "Stuck Instance");
                 }
             }            
 
@@ -189,20 +162,13 @@ namespace bnetlauncher
                 var message = "No Launch Option has been set.\n" +
                     "To launch a game please add one of the following to the launch options:\n";
 
-                foreach (var g in games)
+                foreach (var g in BnetClient.Games)
                 {
                     message += g.Alias + "\t= " + g.Name + "\n";
                 }
 
-                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
-                launcher_mutex.ReleaseMutex();
-
-                MessageBox.Show(message, "Info: How to Use", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                Logger("No parameter given, exiting");
-
-                 // Exit Application
-                launcher_mutex.Close();
-                return;
+                Shared.Logger("No parameter given, exiting");
+                ShowMessageAndExit(message, "How to Use", MessageType.Info);
             }
 
             // Check if the ignore_key flag is passed as a second parameter
@@ -218,16 +184,16 @@ namespace bnetlauncher
             // clean the input by forcing lowercase and strip - and / before comparing it to know alias.
             var param_game = args[0].Trim();
             var param_game_clean = param_game.Replace("-", "").Replace("/", "").ToLower();
-            Logger("Given parameter: " + param_game);
+            Shared.Logger("Given parameter: " + param_game);
 
             var game_key = "";
-            foreach (var g in games)
+            foreach (var g in BnetClient.Games)
             {
                 if (param_game_clean == g.Alias || param_game_clean == g.Key)
                 {
                     // We got a valid alias so we replace it for the actual key
                     // set the found_key to true and stop the search.
-                    Logger("Known key for game '" + g.Name + "'");
+                    Shared.Logger("Known key for game '" + g.Name + "'");
                     game_key = g.Key;
                     break;
                 }
@@ -237,11 +203,11 @@ namespace bnetlauncher
             // invalid key.
             if (game_key == "" && !param_ignore)
             {
-                Logger(String.Format("Invalid key '{0}' given and ignore flag not set, exiting.", param_game));
+                Shared.Logger(String.Format("Invalid key '{0}' given and ignore flag not set, exiting.", param_game));
 
                 var message = String.Format("Unknown launch option '{0}' given.\n", param_game);
                 message += "\nPlease use one of the know launch options:\n";
-                foreach (var g in games)
+                foreach (var g in BnetClient.Games)
                 {
                     message += g.Alias + "\t= " + g.Name + "\n";
                 }
@@ -249,47 +215,45 @@ namespace bnetlauncher
                     " to ignore this check and use it anyway, or contact the author to add it.\n" +
                     "bnetlauncher will now Close.\n";
 
-                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
-                launcher_mutex.ReleaseMutex();
-
-                MessageBox.Show(message, "Error: Unknown Launch Option",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                // Exit Application
-                launcher_mutex.Close();
-                return;
+                ShowMessageAndExit(message, "Unknown Launch Option");
             }
             if (game_key == "" && param_ignore)
             {
-                Logger(String.Format("Unknown parameter {0} given with ignore flag set, continuing", param_game));
+                Shared.Logger(String.Format("Unknown parameter {0} given with ignore flag set, continuing", param_game));
                 game_key = param_game;
             }
 
             // Make sure battle.net client is running
-            if (AssureBnetClientIsRunning() == 0)
+            if (BnetClient.GetProcessId() == 0)
             {
-                Logger("Couldn't find the battle.net running and failed to start it. Exiting");
-
-                MessageBox.Show("Couldn't find the battle.net running and failed to start it.\nExiting application",
-                    "Error: Client not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
-                // Exit Application
-                launcher_mutex.Close();
-                return;
+                // Start the client
+                if (BnetClient.Start())
+                {
+                    // Creates a file signaling that battle.net client was started by us.
+                    // We explicitly call close on the file we just created so that when we try to delete the file 
+                    // it's not locked causing the next launch to also trigger a close of the client.
+                    File.Create(client_lock_file).Close();
+                }
+                else
+                {
+                    Shared.Logger("battle.net not running and failed to start it. Exiting");
+                    ShowMessageAndExit("Couldn't find the battle.net running and failed to start it.\nExiting application",
+                        "Client not found");
+                }
             }
 
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game_key));
-            BnetStartProcess(game_key);
+            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game_key));
+            BnetClient.Launch(game_key);
 
             // Searches for a game started trough the client for 15s
-            Logger("Searching for new battle.net child processes for the game");
+            Shared.Logger("Searching for new battle.net child processes for the game");
             int game_process_id = 0;
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < 15)
             {
-                game_process_id = GetBnetChildProcessIdAfterDate(launch_request_date);
+                game_process_id = BnetClient.GetChildProcessIdAfterDate(launch_request_date);
 
                 // Waits half a second to avoid weird bug where function would return process ID yet would still
                 // be run again for no reason.
@@ -299,21 +263,13 @@ namespace bnetlauncher
 
             if (game_process_id == 0)
             {
-                Logger("No child process game found, giving up and exiting");
+                Shared.Logger("No child process game found, giving up and exiting");
 
-                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
-                launcher_mutex.ReleaseMutex();
-
-                MessageBox.Show("Couldn't find a game started trough battle.net Client.\n" +
-                    "Please check if battle.net did not encounter an error and the game can be launched " +
-                    "normally from the battle.net client.\n\n" +
-                    "bnetlauncher will now exit.",
-                    "Error: Game not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
                 // Exit Application
-                CloseBnetClient();
-                launcher_mutex.Close();
-                return;
+                ShowMessageAndExit("Couldn't find a game started trough battle.net Client.\n" +
+                    "Please check if battle.net did not encounter an error and the game can be launched " +
+                    "normally from the battle.net client.\n\nbnetlauncher will now exit.",
+                    "Error: Game not found");
             }
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
@@ -323,56 +279,113 @@ namespace bnetlauncher
             // Make sure our StartInfo is actually filled and not blank
             if (process.StartInfo.Arguments == "" || process.StartInfo.FileName == "")
             {
-                Logger("Failed to obtain game parameters. Exiting");
+                Shared.Logger("Failed to obtain game parameters. Exiting");
 
-                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
-                launcher_mutex.ReleaseMutex();
-
-                MessageBox.Show(
-                    "Failed to retrieve game parameters.\nGame might start but steam overlay won't be attached to it.\n" +
+                // Exit Application in error
+                ShowMessageAndExit("Failed to retrieve game parameters.\nGame might start but steam overlay won't be attached to it.\n" +
                     "This can happen if the game is no longer running (Starcraft Remastered can only have one running instance) " +
                     "or when bnetlauncher does not have enough permissions, try running bnetlauncher and steam as administrator.",
-                    "Error: Game Parameters", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                
-                // Exit Application
-                
-                CloseBnetClient();
-                launcher_mutex.Close();
-                return;
+                    "Game Parameters");
             }
 
             try
             {
-                Logger("Closing battle.net child game process and starting it under bnetlauncher");
+                Shared.Logger("Closing battle.net child game process and starting it under bnetlauncher");
                 KillProcessAndChildren(game_process_id);
                 process.Start();
             }
             catch (Exception ex)
             {
-                Logger(ex.ToString());
-                MessageBox.Show("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
-                    "Error: Failed to Launch", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Shared.Logger(ex.ToString());
+                ShowMessageAndExit("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
+                    "Failed to Launch");
             }
 
             // Release the mutex to allow another instance of bnetlauncher to grab it and do work
             launcher_mutex.ReleaseMutex();
 
             // Closes the battle.net client (only if we launched it)
-            CloseBnetClient();
+            CloseBnetClientIfLast();
 
             // HACK: Force bnetlauncher to stick around so Destiny 2 will still show in-game status on steam.
             //       This is a bad way to do this and just works around the issue without actually fixing it.
             //       Hope to find a better solution or that this will be fixed by Destiny 2 launch.
             if (game_key == "DST2")
             {
-                Logger("Waiting for destiny 2 to exit");
+                Shared.Logger("Waiting for destiny 2 to exit");
                 process.WaitForExit();
             }
 
-            Logger("Exiting");
+            Shared.Logger("All operations successful, exiting");
             launcher_mutex.Close();
         }
 
+        /// <summary>
+        /// Enum for the types of Message ShowMessageAndExit can show.
+        /// </summary>
+        private enum MessageType { Error, Warning, Info};
+
+        /// <summary>
+        /// Releases the mutex and shows an error message to the user, closing the mutex and exiting on okay.
+        /// Note: This method will also call CloseBnetClientIfLast()
+        /// </summary>
+        /// <param name="message">Error message to show.</param>
+        /// <param name="title">Title of the error to show. (optional)</param>
+        /// <param name="type">Type of message to show, changes title suffix and icon. Defaults to Error</param>
+        /// <param name="exit_code">Exit code, defaults to -1 (optional)</param>
+        private static void ShowMessageAndExit(string message, string title = "", MessageType type = MessageType.Error,
+            int exit_code = -1)
+        {
+            // Select the type of icon and suffix to add to the message
+            MessageBoxIcon icon;
+            string suffix;
+            switch (type)
+            {
+                case MessageType.Info:
+                    icon = MessageBoxIcon.Information;
+                    suffix = "Info: ";
+                    break;
+
+                case MessageType.Warning:
+                    icon = MessageBoxIcon.Warning;
+                    suffix = "Warning: ";
+                    break;
+
+                default:
+                    icon = MessageBoxIcon.Error;
+                    suffix = "Error: ";
+                    break;
+            }
+
+            try
+            {
+                // We hit an error, so we let the next bnetlauncher instant have a go while we show an error
+                if (launcher_mutex != null) launcher_mutex.ReleaseMutex();
+
+                // Shows the actual message
+                MessageBox.Show(message, suffix + title, MessageBoxButtons.OK, icon);
+
+                // Cleans up, makes sure the battle.net client isn't left running under steam or
+                // the mutex is abandoned.
+
+                // Did we start the battle.net launcher?
+                CloseBnetClientIfLast();
+
+                // Cleans up the mutex
+                if (launcher_mutex != null) launcher_mutex.Close();
+            }
+            catch (Exception ex)
+            {
+                // ignore the two possible Exceptions
+                // ApplicationException - The calling thread does not own the mutex.
+                // ObjectDisposedException - The current instance has already been disposed.
+                Shared.Logger("Exception: " + ex.ToString());
+            }
+
+            // calls the end of the application
+            Shared.Logger("exiting with error: " + message);
+            Environment.Exit(exit_code);
+        }
 
         /// <summary>
         /// Queries the WMI service for it's status and returns true if it's running, false otherwise
@@ -395,298 +408,64 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Attempts to verify if the battle.net client URI handler is present in the registry.
-        /// This however can't check if it's actually functional.
-        /// </summary>
-        /// <returns>true if everything seems to be in order, false otherwise.</returns>
-        private static bool IsBnetClientUriHandlerPresent()
-        {
-            try
-            {
-                // Does the battle.net URI registry key exists?
-                using (var battlenet_regkey = Registry.ClassesRoot.OpenSubKey(@"Blizzard.URI.Battlenet\shell\open\command"))
-                {
-                    if (battlenet_regkey == null)
-                    {
-                        Logger("battlenet URI subkey doesn't exist");
-                        return false;
-                    }
-
-                    // does it actually properly link to the battle.net exe?
-                    var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", GetBnetClientPath());
-                    var actual_value = battlenet_regkey.GetValue("").ToString();
-
-                    if (valid_value.ToLower() == actual_value.ToLower())
-                    {
-                        Logger("battlenet URI handler appears to present and correct");
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger("Exception when attempting to determine if battle.net URI is present:");
-                Logger(ex.ToString());
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// NYI: Attempts to repair battle.net URI handler by creating a reg file with the missing entries
-        /// and prompting the user to add them to their registry. This method was chosen to avoid elevating
-        /// bnetlauncher itself to administrator rights.
-        /// </summary>
-        /// <returns>Returns if the repair was completed or not</returns>
-        private static bool RepairBnetClientUriHandler()
-        {
-            var reg_content = String.Join("\n",
-                @"Windows Registry Editor Version 5.00",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet]",
-                @"@= ""URL:Blizzard Battle.net Protocol""",
-                @"""URL Protocol"" = ""{0}""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\DefaultIcon]",
-                @"@=""\""{0}\"",0""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open\command]",
-                @"@= ""\""{0}\"" \""%1\""""");
-
-            // Creates the battle.net path and replaces \ with \\ since that's what's used in registry files
-            var bnet_path = Path.Combine(GetBnetClientPath(), "Battle.net.exe").Replace("\\", "\\\\");
-            var reg_file = Path.Combine(data_path, "battlenet_uri_fix.reg");
-
-            // create reg file with valid entries
-            using (var file = new StreamWriter(reg_file))
-            {
-                file.Write(String.Format(reg_content, bnet_path));
-            }
-
-            // Call regedit with the silent switch to merge reg file to registry and wait, this still shows
-            // the UAC prompt that the user may still cancel causing an exception which we check for.
-            try
-            {
-                var process = Process.Start("regedit.exe", String.Format("/s \"{0}\"", reg_file));
-                process.WaitForExit();
-            }
-            catch (Exception ex)
-            {
-                Logger(ex.ToString());
-                return false;
-            }
-
-            // clean up
-            File.Delete(reg_file);
-            return true;
-        }
-
-        /// <summary>
-        /// Returns the installation folder of the battle.net client using the installation path
-        /// stored in the uninstall entry.
-        /// </summary>
-        /// <returns>The path to the battle.net client folder without trailing slash</returns>
-        private static string GetBnetClientPath()
-        {
-            try
-            {
-                // Opens the registry in 32bit mode since in 64bits battle.net uninstall entry is under Wow6432Node Key
-                using (var registry = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
-                {
-                    // goes to the uninstall entry on the battle.net client and retrieves the InstallLocation key to get the path
-                    using (var bnet_uninstall_key = registry.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Battle.net"))
-                    {
-                        var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
-                        if (bnet_path == "")
-                        {
-                            Logger("Failed to retrieve path from battle.net uninstall entry");
-                        }
-
-                        return bnet_path;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger("Exception while trying to retrieve battle.net client path:");
-                Logger(ex.ToString());
-                return "";
-            }
-        }
-
-        /// <summary>
-        /// Makes sure the battle.net client is running properly and starts it if not.
-        /// </summary>
-        /// <returns>returns the process id of the started battle.net client.</returns>
-        private static int AssureBnetClientIsRunning()
-        {
-            // Is the battle.net client already running?
-            int bnet_pid = GetBnetProcessId();
-
-            // The client isn't running so let's start it
-            if (bnet_pid == 0)
-            {
-                Logger("battle.net client not running, trying to start it");;
-                BnetStartProcess();
-
-                // Creates a file signaling that battle.net client was started by us
-                var file = File.Create(client_lock_file);
-
-                // Explicitly close the file we just created so that when we try to delete the file 
-                // it's not locked causing the next launch to also trigger a close of the client.
-                file.Close();
-
-                // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
-                // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-                // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
-                // well (SystemSurvey.exe, Battle.net Helper.exe).
-                // TODO: Find a way to do this that doesn't feel like a hack.
-                Thread.Sleep(2000);
-
-                bnet_pid = GetBnetProcessId();     
-            }
-
-            // Did we actually manage to start the battle.net client or did it just timeout?
-            if (bnet_pid == 0)
-            {
-                Logger("Failed to start battle.net client.");
-                return 0; // Couldn't start the client
-            }
-
-            // On start Battle.net client isn't fully functional, this issuing commands to it will just do nothing, so we need
-            // to wait for it to fully start, to do this we check for the helper processes battle.net helper. Once they start
-            // the battle.net client should be fully functional.
-            // We check every 500ms for 2 minutes.
-            int helper_count = 0;
-            int helper_required = BnetHelperRequired();
-            DateTime helper_start_time = DateTime.Now;
-            while (helper_count < helper_required && DateTime.Now.Subtract(helper_start_time).TotalSeconds < 120)
-            {
-                try
-                {
-                    using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'Battle.net Helper.exe'", bnet_pid)))
-                    {
-                        helper_count = searcher.Get().Count;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger(ex.ToString());
-                }
-
-                Thread.Sleep(100);
-            }
-
-            // Did the helpers start or did we timeout?
-            if (helper_count < helper_required)
-            {
-                Logger("not enough battle.net Helpers started.");
-                return 0;
-            }
-
-            // battle.net should be fully running
-            Logger("battle.net client is fully running with pid = " + bnet_pid);
-            return bnet_pid;
-        }
-
-
-        /// <summary>
-        /// Launches a battle.net client URI command (without the battlenet://). 
-        /// </summary>
-        /// <param name="bnet_command">Battle.net client URI command to launch without
-        /// the protocol part "battlenet://", leaving it blank will launch and/or open 
-        /// the battle.net client.</param>
-        private static void BnetStartProcess(string bnet_command = "")
-        {
-            var bnet_cmd = "battlenet://" + bnet_command;
-            try
-            {
-                Process.Start(bnet_cmd);
-            }
-            catch (Exception ex)
-            {
-                Logger(ex.ToString());
-                MessageBox.Show("Failed to start game.\nIt's possible that Battle.net Client install is corrupted, try reinstalling it.",
-                    "Error: Fail to start game", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of battle.net helper processes that need to be running based on the
-        /// battle.net client setting HardwareAcceleration. If true there should be at least 2 helpers
-        /// otherwise only 1 is required.
-        /// </summary>
-        /// <returns>number of battle.net helper processes required.</returns>
-        private static int BnetHelperRequired()
-        {
-            // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
-            // would add a library dependency to the project so instead we'll do the hackish alternative
-            // of just regexing the config file.
-
-            try
-            {
-                // Location of the battle.net client configuration file in JSON
-                var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Battle.net", "Battle.net.config");
-
-                // Read the config file into a string
-                var bnet_config = File.ReadAllText(bnet_config_file);
-
-                // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
-                // if it's ON then the client will have at least 2 Battle.net Helper running.
-                var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
-
-                if (match.Success)
-                {
-                    if (match.Groups[1].Value.Equals("true"))
-                    {
-                        return 2;
-                    }
-                    else
-                    {
-                        // Hardware acceleration is off, so no GPU battle.net helper
-                        return 1;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger(ex.ToString());
-            }
-
-            return 2;
-        }
-
-        /// <summary>
         /// Closes the battle.net client if client_lock_file exists and we're the last running instance of
         /// bnetlauncher.
         /// </summary>
-        private static void CloseBnetClient()
+        private static void CloseBnetClientIfLast()
         {
             try
             {
                 // Did we start the battle.net launcher?
                 if (File.Exists(client_lock_file))
                 {
-                    // Attempts to get a lock on the mutex immediately, if we get true we did it and there's
-                    // no other bnetlauncher running, so we clean up.
+                    // Attempts to get a lock on the mutex immediately, if we get true we got it and there
+                    // should be no other bnetlauncher running, so we clean up.
                     if (launcher_mutex.WaitOne(0))
                     {
-                        Logger("Closing battle.net client.");
-                        KillProcessAndChildren(GetBnetProcessId());
+                        Shared.Logger("Closing battle.net client.");
+                        KillProcessAndChildren(BnetClient.GetProcessId());
                         File.Delete(client_lock_file);
                     }
                     else
                     {
-                        Logger("mutex returned false on exit");
+                        Shared.Logger("mutex returned false on exit");
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Logger(ex.ToString());
+                Shared.Logger(ex.ToString());
             }
 
+        }
+
+        /// <summary>
+        /// Kill a process tree recursively
+        /// </summary>
+        /// <param name="process_id">Process ID.</param>
+        public static void KillProcessAndChildren(int process_id)
+        {
+            using (var searcher = new ManagementObjectSearcher(
+                String.Format("SELECT * FROM Win32_Process WHERE ParentProcessId = {0}", process_id)))
+            {
+                foreach (var result in searcher.Get())
+                {
+                    KillProcessAndChildren(Convert.ToInt32(result["ProcessID"]));
+                }
+                try
+                {
+                    Process process = Process.GetProcessById(process_id);
+                    process.Kill();
+                }
+                catch (ArgumentException)
+                {
+                    // Process already exited.
+                }
+                catch (Exception ex)
+                {
+                    Shared.Logger(ex.ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -709,7 +488,7 @@ namespace bnetlauncher
             bool done = false;
             while (retry < retry_count && done != true)
             {
-                Logger(String.Format("Attempt {0} to find start parameters", retry));
+                Shared.Logger(String.Format("Attempt {0} to find start parameters", retry));
                 try
                 {
                     // IMPORTANT: We use System.Management API because Process.StartInfo is not populated if used on processes that we
@@ -741,84 +520,17 @@ namespace bnetlauncher
                 }
                 catch (Exception ex)
                 {
-                    Logger(String.Format("Failed attempt {0}", retry));
-                    Logger(ex.ToString());
+                    Shared.Logger(String.Format("Failed attempt {0}", retry));
+                    Shared.Logger(ex.ToString());
                 }
 
                 retry += 1;
                 Thread.Sleep(100);
             }
 
-            Logger("Filename = " + start_info.FileName);
-            Logger("Arguments = " + start_info.Arguments);
+            Shared.Logger("Filename = " + start_info.FileName);
+            Shared.Logger("Arguments = " + start_info.Arguments);
             return start_info;
-        }
-
-        /// <summary>
-        /// Returns the first child process Id of battle.net client that's not a "battle.net helper.exe" after the
-        /// given date.
-        /// </summary>
-        /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
-        /// <returns>Process Id of the child process.</returns>
-        private static int GetBnetChildProcessIdAfterDate(DateTime date)
-        {
-            int child_process_id = 0;
-            DateTime child_process_date = DateTime.Now;
-
-            using (var searcher = new ManagementObjectSearcher(String.Format(
-                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name <> 'Battle.net Helper.exe' AND ParentProcessId = {1}",
-                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), GetBnetProcessId())))
-            {
-                foreach (var result in searcher.Get())
-                {
-                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
-                    var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
-
-                    Logger(String.Format("Found battle.net child process started at '{0}' with pid = {1}", result_process_date.ToString("hh:mm:ss.ffff"), result_process_id));
-
-                    // Closest to the given date is the one we return
-                    if (result_process_date.Subtract(date).TotalMilliseconds < child_process_date.Subtract(date).TotalMilliseconds)
-                    {
-                        child_process_id = result_process_id;
-                        child_process_date = result_process_date;
-                    }
-                }
-            }
-            if (child_process_id == 0)
-            {
-                Logger("No child process found.");
-            }
-            else
-            {
-                Logger(String.Format("Selecting battle.net child started at '{0}' with pid = {1}", child_process_date.ToString("hh:mm:ss.ffff"),
-                    child_process_id));
-            }
-            return child_process_id;
-        }
-
-        /// <summary>
-        /// Returns the process Id of the Battle.Net.
-        /// </summary>
-        /// <returns>The process Id of the Battle.net launcher.</returns>
-        private static int GetBnetProcessId()
-        {
-            // TODO: What would happen if there's another program with a battle.net.exe running? Should we even care?
-            try
-            {
-                using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.Beta.exe' OR Name = 'Battle.Net.exe'"))
-                {
-                    foreach (var result in searcher.Get())
-                    {
-                        return Convert.ToInt32(result["ProcessId"]);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger(String.Format("Error finding battle.net client pid. {0}", ex.ToString()));
-                return 0;
-            }
-            return 0;
         }
 
         /// <summary>
@@ -831,15 +543,11 @@ namespace bnetlauncher
             public string os_version;
             public string os_locale;
             public string cpu_name;
-            //public string cpu_speed;
-            //public string ram_name;
             public string ram_capacity;
             public string hdd_name;
-            //public string hdd_capacity;
             public string gpu_name;
             public string gpu_driver;
-            public string gpu_ram;
-            //public string mb_name;            
+            public string gpu_ram;            
         }
 
         /// <summary>
@@ -849,11 +557,11 @@ namespace bnetlauncher
         {
             // This information can't be fully trusted since Windows will lie about it's version if we don't include
             // explicit support in the app.manifest. 
-            Logger(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
+            Shared.Logger(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
                 (Environment.Is64BitProcess ? "64bit" : "32bit")));
 
 
-            Logger("Getting Machine details:");
+            Shared.Logger("Getting Machine details:");
             var machine_info = new MachineInfo();
 
             try
@@ -870,23 +578,12 @@ namespace bnetlauncher
                     }
                 }
 
-                // Motherboard (unnecessary?)
-                //using (var searcher = new ManagementObjectSearcher("SELECT Product FROM Win32_BaseBoard"))
-                //{
-                //    foreach (var result in searcher.Get())
-                //    {
-                //        machine_info.mb_name = result["Product"].ToString();
-                //    }
-                //}
-
                 // CPU
                 using (var searcher = new ManagementObjectSearcher("SELECT Name, CurrentClockSpeed FROM Win32_Processor"))
                 {
                     foreach (var result in searcher.Get())
                     {
                         machine_info.cpu_name = result["Name"].ToString();
-                        //machine_info.cpu_speed = result["CurrentClockSpeed"].ToString() + "MHz";
-
                     }
                 }
 
@@ -926,95 +623,29 @@ namespace bnetlauncher
             }
             catch (Exception ex)
             {
-                Logger(String.Format("Error Getting Machine information. {0}", ex.ToString()));
+                Shared.Logger(String.Format("Error Getting Machine information. {0}", ex.ToString()));
             }
 
-            Logger(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
+            Shared.Logger(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
                 machine_info.os_bits, machine_info.os_locale));
-            //Logger(String.Format("MB: {0}", machine_info.mb_name));
-            Logger(String.Format("CPU: {0}; RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
-            Logger(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
-            //Logger(String.Format("RAM: {0}", machine_info.ram_capacity));
-            Logger(String.Format("HDD: {0}", machine_info.hdd_name));
-
+            Shared.Logger(String.Format("CPU: {0}; RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
+            Shared.Logger(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
+            Shared.Logger(String.Format("HDD: {0}", machine_info.hdd_name));
         }
-
-        /// <summary>
-        /// Kill a process tree recursively
-        /// </summary>
-        /// <param name="process_id">Process ID.</param>
-        private static void KillProcessAndChildren(int process_id)
-        {
-            using (var searcher = new ManagementObjectSearcher(
-                String.Format("SELECT * FROM Win32_Process WHERE ParentProcessId = {0}", process_id)))
-            {
-                foreach (var result in searcher.Get())
-                {
-                    KillProcessAndChildren(Convert.ToInt32(result["ProcessID"]));
-                }
-                try
-                {
-                    Process process = Process.GetProcessById(process_id);
-                    process.Kill();
-                }
-                catch(ArgumentException)
-                {
-                    // Process already exited.
-                }
-                catch(Exception ex)
-                {
-                    Logger(ex.ToString());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Logger function for debugging. It will output a line of text with current datetime in a log file per
-        /// instance. The log file will only be written if a "enablelog" or "enablelog.txt" file exists in the
-        /// data_path.
-        /// </summary>
-        /// <param name="line">Line to write to the log</param>
-        /// <param name="append">Flag that sets if the line should be appended to the file. First use should be
-        /// false.</param>
-        public static void Logger(String line, bool append = true)
-        {
-            if (!File.Exists(Path.Combine(data_path, "enablelog")) &&
-                !File.Exists(Path.Combine(data_path, "enablelog.txt")) &&
-                !File.Exists(Path.Combine(data_path, "enablelog.txt.txt")))
-            {
-                // only enable logging if a file named enablelog exists in 
-                return;
-            }
-
-            var log_file = Path.Combine(data_path, "debug_" +
-                Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd_HHmmssffff") +".log");
-
-            StreamWriter file = new StreamWriter(log_file, append);
-            file.WriteLine("[{0}]: {1}",
-                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffff"),
-                line);
-            file.Close();
-        }
-
-        /// <summary>
-        /// Path used to save the debug logs and client_lock_file
-        /// </summary>
-        private static string data_path = Path.Combine(Environment.GetFolderPath(
-            Environment.SpecialFolder.LocalApplicationData), Application.CompanyName, "bnetlauncher");
-
-        /// <summary>
-        /// File that serves as a lock to signal battle.net client was started by bnetlauncher.
-        /// </summary>
-        private static string client_lock_file = Path.Combine(data_path, "bnetlauncher_startedclient.lock");
 
         /// <summary>
         /// Global named mutex object
         /// </summary>
-        private static Mutex launcher_mutex;
+        private static Mutex launcher_mutex = null;
 
         /// <summary>
         /// Constant String that identifies the named mutex.
         /// </summary>
         private const string mutex_name = "Local\\madalien.com_bnetlauncher_running";
+
+        /// <summary>
+        /// File that serves as a lock to signal battle.net client was started by bnetlauncher.
+        /// </summary>
+        private static string client_lock_file = Path.Combine(Shared.DataPath, "bnetlauncher_startedclient.lock");
     }
 }
