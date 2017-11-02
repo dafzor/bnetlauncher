@@ -28,7 +28,7 @@ Howto Use
 |sc2		| Starcraft 2		|
 |hots		| Heroes of the Storm	|
 |scr		| Starcraft Remastered  |
-|dst2		| Destiny 2		|
+|dst2		| Destiny 2	(Overlay will not work!!! See notes bellow)	|
 	
 the result should look something like this:
 	`"G:\Steam\bnetlauncher.exe" wow`
@@ -36,6 +36,10 @@ the result should look something like this:
 Note: Any parameter not on the list will just show an error, to ignore and continue `-i` can be added
       after the game parameter so it looks like: `bnetlauncher.exe my_parameter -i`
 
+Destiny 2: Bungie has decided to implement anti-cheat mechanisms that also cause most overlays to
+           not work as expected. See https://www.bungie.net/en/Help/Article/46101 for more information
+           If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best
+           option.
 
 Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
           `"%localappdata%\madalien.com\bnetlauncher\"`, you can open the location by pasting the path
@@ -44,6 +48,7 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
 
 Known Issues
 -------------
+- Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher.
 - Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
   with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
 - The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
