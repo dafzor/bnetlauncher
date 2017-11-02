@@ -37,7 +37,7 @@ Note: Any parameter not on the list will just show an error, to ignore and conti
       after the game parameter so it looks like: `bnetlauncher.exe my_parameter -i`
 
 Destiny 2: Bungie has decided to implement anti-cheat mechanisms that also cause most overlays to
-           not work as expected. See https://www.bungie.net/en/Help/Article/46101 for more information
+           not work as expected. See https://www.bungie.net/en/Help/Article/46101 for more information.
            If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best
            option.
 
