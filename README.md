@@ -48,7 +48,8 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
 
 Known Issues
 -------------
-- Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher.
+- Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by Bungie and cannot be resolved. Steam Input users can use https://alia5.github.io/GloSC/
+- Enabling multiple instances of battle.net client in it's options will break bnetlauncher functionality.
 - Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
   with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
 - The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
