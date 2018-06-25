@@ -48,7 +48,8 @@ namespace bnetlauncher
                     new BnetGame("S2", "Starcraft 2", "sc2"),
                     new BnetGame("Hero", "Heroes of the Storm", "hots"),
                     new BnetGame("SCR", "Starcraft Remastered", "scr"),
-                    new BnetGame("DST2", "Destiny 2", "dst2")
+                    new BnetGame("DST2", "Destiny 2", "dst2"),
+                    new BnetGame("VIPR", "Call of Duty: Black Ops 4", "codbo4")
                 };
             }
         }
@@ -136,6 +137,31 @@ namespace bnetlauncher
                     return "";
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static string GetClientExe()
+        {
+            // Get battle.net client exe location
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher(String.Format("SELECT ExecutablePath FROM Win32_process WHERE ProcessId = {0}", GetProcessId())))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        Shared.Logger(String.Format("Found client exe :'{0}'", Convert.ToString(result["ExecutablePath"])));
+                        return Convert.ToString(result["ExecutablePath"]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Shared.Logger(String.Format("Error finding battle.net client exe. {0}", ex.ToString()));
+            }
+            return "";
         }
 
         /// <summary>
@@ -265,10 +291,10 @@ namespace bnetlauncher
         /// the battle.net client.</param>
         public static bool Launch(string bnet_command = "")
         {
-            var bnet_cmd = "battlenet://" + bnet_command;
+            var bnet_cmd = string.Format("--exec=\"launch {0}\"", bnet_command);
             try
             {
-                Process.Start(bnet_cmd);
+                Process.Start(GetClientExe(), bnet_cmd);
             }
             catch (Exception ex)
             {

@@ -85,34 +85,35 @@ namespace bnetlauncher
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
 
+            // Disabled because no longer needed due to changes?
             // Checks if the battle.net client URI handler is registered in the registry
-            if (!BnetClient.IsUriHandlerPresent())
-            {
-                // Show message asking if user wants to try and repair
-                var reply = MessageBox.Show("Some of the battle.net client functionality seem to be missing, without it bnetlauncher" +
-                    " will not be able to function. Please reinstall the battle.net to fix the situation.\n\n" +
-                    "Alternatively, if you're still getting this message after reinstalling the client a repair can be attempted," +
-                    " this will create the missing registry keys and prompt you to add them to your registry (you must answer yes).\n\n" +
-                    "Would you like to attempt the repair?\nIf you choose No bnetlauncher will exit.",
-                    "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            //if (!BnetClient.IsUriHandlerPresent())
+            //{
+            //    // Show message asking if user wants to try and repair
+            //    var reply = MessageBox.Show("Some of the battle.net client functionality seem to be missing, without it bnetlauncher" +
+            //        " will not be able to function. Please reinstall the battle.net to fix the situation.\n\n" +
+            //        "Alternatively, if you're still getting this message after reinstalling the client a repair can be attempted," +
+            //        " this will create the missing registry keys and prompt you to add them to your registry (you must answer yes).\n\n" +
+            //        "Would you like to attempt the repair?\nIf you choose No bnetlauncher will exit.",
+            //        "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                // call repair or not and exit
-                if (reply == DialogResult.Yes)
-                {
-                    var did_repair = BnetClient.RepairUriHandler();
-                    if (!did_repair && !BnetClient.IsUriHandlerPresent())
-                    {
-                        ShowMessageAndExit("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
-                            "Failed Repair");
-                    }
-                    // continue normal execution
-                }
-                else
-                {
-                    Shared.Logger("User choose to not attempt repair, exiting");
-                    return;
-                }
-            }
+            //    // call repair or not and exit
+            //    if (reply == DialogResult.Yes)
+            //    {
+            //        var did_repair = BnetClient.RepairUriHandler();
+            //        if (!did_repair && !BnetClient.IsUriHandlerPresent())
+            //        {
+            //            ShowMessageAndExit("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
+            //                "Failed Repair");
+            //        }
+            //        // continue normal execution
+            //    }
+            //    else
+            //    {
+            //        Shared.Logger("User choose to not attempt repair, exiting");
+            //        return;
+            //    }
+            //}
 
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it
