@@ -29,6 +29,7 @@ Howto Use
 |hots		| Heroes of the Storm	|
 |scr		| Starcraft Remastered  |
 |dst2		| Destiny 2	(Overlay will not work!!! See notes bellow)	|
+|codbo4		| Call of Duty: Black Ops 4	|
 	
 the result should look something like this:
 	`"G:\Steam\bnetlauncher.exe" wow`
