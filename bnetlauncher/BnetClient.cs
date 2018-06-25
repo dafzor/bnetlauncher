@@ -47,7 +47,7 @@ namespace bnetlauncher
                     new BnetGame("Pro", "Overwatch", "ow"),
                     new BnetGame("S2", "Starcraft 2", "sc2"),
                     new BnetGame("Hero", "Heroes of the Storm", "hots"),
-                    new BnetGame("SCR", "Starcraft Remastered", "scr"),
+                    new BnetGame("S1", "Starcraft Remastered", "scr"),
                     new BnetGame("DST2", "Destiny 2", "dst2"),
                     new BnetGame("VIPR", "Call of Duty: Black Ops 4", "codbo4")
                 };
