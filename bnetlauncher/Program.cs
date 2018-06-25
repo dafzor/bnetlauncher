@@ -87,11 +87,15 @@ namespace bnetlauncher
 
 
             // Checks if the battle.net client installLocation property is not returning an empty path
+            
             if (BnetClient.InstallLocation == String.Empty)
             {
                 ShowMessageAndExit("Couldn't retrive Battle.net Client install location.\n\n" +
                   "Please reinstall the Battle.net Client to fix the issue\n");
             }
+
+            // logging the client used in case something weird happens...
+            Shared.Logger(String.Format("ClientExe = '{0}'", BnetClient.ClientExe)); 
 
             // Checks if the battle.net client exe exists
             if (!File.Exists(BnetClient.ClientExe))
