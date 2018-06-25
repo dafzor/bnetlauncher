@@ -85,35 +85,21 @@ namespace bnetlauncher
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
 
-            // Disabled because no longer needed due to changes?
-            // Checks if the battle.net client URI handler is registered in the registry
-            //if (!BnetClient.IsUriHandlerPresent())
-            //{
-            //    // Show message asking if user wants to try and repair
-            //    var reply = MessageBox.Show("Some of the battle.net client functionality seem to be missing, without it bnetlauncher" +
-            //        " will not be able to function. Please reinstall the battle.net to fix the situation.\n\n" +
-            //        "Alternatively, if you're still getting this message after reinstalling the client a repair can be attempted," +
-            //        " this will create the missing registry keys and prompt you to add them to your registry (you must answer yes).\n\n" +
-            //        "Would you like to attempt the repair?\nIf you choose No bnetlauncher will exit.",
-            //        "Error: URI handle broken", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            //    // call repair or not and exit
-            //    if (reply == DialogResult.Yes)
-            //    {
-            //        var did_repair = BnetClient.RepairUriHandler();
-            //        if (!did_repair && !BnetClient.IsUriHandlerPresent())
-            //        {
-            //            ShowMessageAndExit("Repair attempt failed or was canceled.\nbnetlauncher will now exit.",
-            //                "Failed Repair");
-            //        }
-            //        // continue normal execution
-            //    }
-            //    else
-            //    {
-            //        Shared.Logger("User choose to not attempt repair, exiting");
-            //        return;
-            //    }
-            //}
+            // Checks if the battle.net client installLocation property is not returning an empty path
+            if (BnetClient.InstallLocation == String.Empty)
+            {
+                ShowMessageAndExit("Couldn't retrive Battle.net Client install location.\n\n" +
+                  "Please reinstall the Battle.net Client to fix the issue\n");
+            }
+
+            // Checks if the battle.net client exe exists
+            if (!File.Exists(BnetClient.ClientExe))
+            {
+                ShowMessageAndExit("Couldn't find the Battle.net Client exe in the following location:\n" +
+                    "'" + BnetClient.ClientExe + "'\n\n" +
+                    "Please check if Battle.net Client is properly Installed.");
+            }
 
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it

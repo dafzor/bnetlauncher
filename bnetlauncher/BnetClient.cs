@@ -136,7 +136,7 @@ namespace bnetlauncher
                 {
                     Shared.Logger("Exception while trying to retrieve battle.net client path:");
                     Shared.Logger(ex.ToString());
-                    return "";
+                    return String.Empty;
                 }
             }
         }
@@ -311,91 +311,6 @@ namespace bnetlauncher
 
             // 
             return WaitUntilReady();
-        }
-
-        /// <summary>
-        /// Attempts to verify if the battle.net client URI handler is present in the registry.
-        /// This however can't check if it's actually functional.
-        /// </summary>
-        /// <returns>true if everything seems to be in order, false otherwise.</returns>
-        public static bool IsUriHandlerPresent()
-        {
-            try
-            {
-                // Does the battle.net URI registry key exists?
-                using (var battlenet_regkey = Registry.ClassesRoot.OpenSubKey(@"Blizzard.URI.Battlenet\shell\open\command"))
-                {
-                    if (battlenet_regkey == null)
-                    {
-                        Shared.Logger("battlenet URI subkey doesn't exist");
-                        return false;
-                    }
-
-                    // does it actually properly link to the battle.net exe?
-                    var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", InstallLocation);
-                    var actual_value = battlenet_regkey.GetValue("").ToString();
-
-                    if (valid_value.ToLower() == actual_value.ToLower())
-                    {
-                        Shared.Logger("battlenet URI handler appears to present and correct");
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Shared.Logger("Exception when attempting to determine if battle.net URI is present:");
-                Shared.Logger(ex.ToString());
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to repair battle.net URI handler by creating a reg file with the missing entries
-        /// and prompting the user to add them to their registry. This method was chosen to avoid elevating
-        /// bnetlauncher itself to administrator rights.
-        /// </summary>
-        /// <returns>Returns if the repair was completed or not</returns>
-        public static bool RepairUriHandler()
-        {
-            var reg_content = String.Join("\n",
-                @"Windows Registry Editor Version 5.00",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet]",
-                @"@= ""URL:Blizzard Battle.net Protocol""",
-                @"""URL Protocol"" = ""{0}""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\DefaultIcon]",
-                @"@=""\""{0}\"",0""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open\command]",
-                @"@= ""\""{0}\"" \""%1\""""");
-
-            // Creates the battle.net path and replaces \ with \\ since that's what's used in registry files
-            var bnet_path = Path.Combine(InstallLocation, "Battle.net.exe").Replace("\\", "\\\\");
-            var reg_file = Path.Combine(Shared.DataPath, "battlenet_uri_fix.reg");
-
-            // create reg file with valid entries
-            using (var file = new StreamWriter(reg_file))
-            {
-                file.Write(String.Format(reg_content, bnet_path));
-            }
-
-            // Call regedit with the silent switch to merge reg file to registry and wait, this still shows
-            // the UAC prompt that the user may still cancel causing an exception which we check for.
-            try
-            {
-                var process = Process.Start("regedit.exe", String.Format("/s \"{0}\"", reg_file));
-                process.WaitForExit();
-            }
-            catch (Exception ex)
-            {
-                Shared.Logger(ex.ToString());
-                return false;
-            }
-
-            // clean up
-            File.Delete(reg_file);
-            return true;
         }
     }
 }
