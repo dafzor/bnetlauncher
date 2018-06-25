@@ -106,6 +106,8 @@ namespace bnetlauncher
         /// <summary>
         /// Returns the installation folder of the battle.net client using the installation path
         /// stored in the uninstall entry.
+        /// 
+        /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
         public static string InstallLocation
@@ -140,28 +142,15 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// 
+        /// Returns InstallLocation combined with battle.net.exe which seems to always the be main exe for the client now
+        /// even when beta is installed.
         /// </summary>
-        /// <returns></returns>
-        public static string GetClientExe()
+        public static string ClientExe
         {
-            // Get battle.net client exe location
-            try
+            get
             {
-                using (var searcher = new ManagementObjectSearcher(String.Format("SELECT ExecutablePath FROM Win32_process WHERE ProcessId = {0}", GetProcessId())))
-                {
-                    foreach (var result in searcher.Get())
-                    {
-                        Shared.Logger(String.Format("Found client exe :'{0}'", Convert.ToString(result["ExecutablePath"])));
-                        return Convert.ToString(result["ExecutablePath"]);
-                    }
-                }
+                return Path.Combine(InstallLocation, "battle.net.exe");
             }
-            catch (Exception ex)
-            {
-                Shared.Logger(String.Format("Error finding battle.net client exe. {0}", ex.ToString()));
-            }
-            return "";
         }
 
         /// <summary>
@@ -294,7 +283,7 @@ namespace bnetlauncher
             var bnet_cmd = string.Format("--exec=\"launch {0}\"", bnet_command);
             try
             {
-                Process.Start(GetClientExe(), bnet_cmd);
+                Process.Start(ClientExe, bnet_cmd);
             }
             catch (Exception ex)
             {
@@ -310,8 +299,8 @@ namespace bnetlauncher
         /// <returns>The result of the WaitUntilReady call.</returns>
         public static bool Start()
         {
-            // Calling Launch without any game parameter can serve to open the client.
-            Launch(); 
+            // Just launches the client which is required for it to interpret launch commands properly.
+            Process.Start(ClientExe);
 
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
