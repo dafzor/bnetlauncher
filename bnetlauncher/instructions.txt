@@ -24,6 +24,7 @@ How to Use
 	hots	= Heroes of the Storm
 	scr		= Starcraft Remastered
 	dst2	= Destiny 2 (Overlay will not work!!! See notes bellow)
+	codbo4  = Call of Duty: Black Ops 4
 	
 	the result should look something like this:
 		"G:\Steam\bnetlauncher.exe" wow
@@ -75,12 +76,20 @@ I can be reached by email at daf@madalien.com
 
 Special Thanks
 --------------
+github Ethan-BB for the new parameters to launch games on battle.net.
 github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectivly.
 /u/fivetwofoureight for creating and allowing me to use his icon.
 /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
 
 Version History
 ---------------
+1.21
+* Proper fix thanks to Ethan-BB for the new battle.net client method to launch games.
+
+1.20 (unreleased)
+* Changed how bnetlauncher starts games to simulating a enter key on the client due to
+  breaking changes made by blizzard on how battlenet:// URI are handled 
+
 1.19
 + Added notes clarifying Destiny 2 compatibility issues.
 * Possibly resolved some issues with incorrect checking of helpers in the previous version

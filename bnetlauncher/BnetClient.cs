@@ -47,8 +47,9 @@ namespace bnetlauncher
                     new BnetGame("Pro", "Overwatch", "ow"),
                     new BnetGame("S2", "Starcraft 2", "sc2"),
                     new BnetGame("Hero", "Heroes of the Storm", "hots"),
-                    new BnetGame("SCR", "Starcraft Remastered", "scr"),
-                    new BnetGame("DST2", "Destiny 2", "dst2")
+                    new BnetGame("S1", "Starcraft Remastered", "scr"),
+                    new BnetGame("DST2", "Destiny 2", "dst2"),
+                    new BnetGame("VIPR", "Call of Duty: Black Ops 4", "codbo4")
                 };
             }
         }
@@ -105,6 +106,8 @@ namespace bnetlauncher
         /// <summary>
         /// Returns the installation folder of the battle.net client using the installation path
         /// stored in the uninstall entry.
+        /// 
+        /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
         public static string InstallLocation
@@ -133,8 +136,20 @@ namespace bnetlauncher
                 {
                     Shared.Logger("Exception while trying to retrieve battle.net client path:");
                     Shared.Logger(ex.ToString());
-                    return "";
+                    return String.Empty;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns InstallLocation combined with battle.net.exe which seems to always the be main exe for the client now
+        /// even when beta is installed.
+        /// </summary>
+        public static string ClientExe
+        {
+            get
+            {
+                return Path.Combine(InstallLocation, "battle.net.exe");
             }
         }
 
@@ -265,10 +280,10 @@ namespace bnetlauncher
         /// the battle.net client.</param>
         public static bool Launch(string bnet_command = "")
         {
-            var bnet_cmd = "battlenet://" + bnet_command;
+            var bnet_cmd = string.Format("--exec=\"launch {0}\"", bnet_command);
             try
             {
-                Process.Start(bnet_cmd);
+                Process.Start(ClientExe, bnet_cmd);
             }
             catch (Exception ex)
             {
@@ -284,8 +299,8 @@ namespace bnetlauncher
         /// <returns>The result of the WaitUntilReady call.</returns>
         public static bool Start()
         {
-            // Calling Launch without any game parameter can serve to open the client.
-            Launch(); 
+            // Just launches the client which is required for it to interpret launch commands properly.
+            Process.Start(ClientExe);
 
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
@@ -296,91 +311,6 @@ namespace bnetlauncher
 
             // 
             return WaitUntilReady();
-        }
-
-        /// <summary>
-        /// Attempts to verify if the battle.net client URI handler is present in the registry.
-        /// This however can't check if it's actually functional.
-        /// </summary>
-        /// <returns>true if everything seems to be in order, false otherwise.</returns>
-        public static bool IsUriHandlerPresent()
-        {
-            try
-            {
-                // Does the battle.net URI registry key exists?
-                using (var battlenet_regkey = Registry.ClassesRoot.OpenSubKey(@"Blizzard.URI.Battlenet\shell\open\command"))
-                {
-                    if (battlenet_regkey == null)
-                    {
-                        Shared.Logger("battlenet URI subkey doesn't exist");
-                        return false;
-                    }
-
-                    // does it actually properly link to the battle.net exe?
-                    var valid_value = String.Format("\"{0}\\Battle.net.exe\" \"%1\"", InstallLocation);
-                    var actual_value = battlenet_regkey.GetValue("").ToString();
-
-                    if (valid_value.ToLower() == actual_value.ToLower())
-                    {
-                        Shared.Logger("battlenet URI handler appears to present and correct");
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Shared.Logger("Exception when attempting to determine if battle.net URI is present:");
-                Shared.Logger(ex.ToString());
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to repair battle.net URI handler by creating a reg file with the missing entries
-        /// and prompting the user to add them to their registry. This method was chosen to avoid elevating
-        /// bnetlauncher itself to administrator rights.
-        /// </summary>
-        /// <returns>Returns if the repair was completed or not</returns>
-        public static bool RepairUriHandler()
-        {
-            var reg_content = String.Join("\n",
-                @"Windows Registry Editor Version 5.00",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet]",
-                @"@= ""URL:Blizzard Battle.net Protocol""",
-                @"""URL Protocol"" = ""{0}""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\DefaultIcon]",
-                @"@=""\""{0}\"",0""",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open]",
-                @"[HKEY_CLASSES_ROOT\Blizzard.URI.Battlenet\shell\open\command]",
-                @"@= ""\""{0}\"" \""%1\""""");
-
-            // Creates the battle.net path and replaces \ with \\ since that's what's used in registry files
-            var bnet_path = Path.Combine(InstallLocation, "Battle.net.exe").Replace("\\", "\\\\");
-            var reg_file = Path.Combine(Shared.DataPath, "battlenet_uri_fix.reg");
-
-            // create reg file with valid entries
-            using (var file = new StreamWriter(reg_file))
-            {
-                file.Write(String.Format(reg_content, bnet_path));
-            }
-
-            // Call regedit with the silent switch to merge reg file to registry and wait, this still shows
-            // the UAC prompt that the user may still cancel causing an exception which we check for.
-            try
-            {
-                var process = Process.Start("regedit.exe", String.Format("/s \"{0}\"", reg_file));
-                process.WaitForExit();
-            }
-            catch (Exception ex)
-            {
-                Shared.Logger(ex.ToString());
-                return false;
-            }
-
-            // clean up
-            File.Delete(reg_file);
-            return true;
         }
     }
 }
