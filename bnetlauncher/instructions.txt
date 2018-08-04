@@ -83,6 +83,9 @@ github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support 
 
 Version History
 ---------------
+1.22
+* Updated for changes in new Battle.net client beta.
+
 1.21
 * Proper fix thanks to Ethan-BB for the new battle.net client method to launch games.
 

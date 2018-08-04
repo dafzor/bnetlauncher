@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("madalien.com")]
 [assembly: AssemblyProduct("Battle.net Launcher for Steam")]
-[assembly: AssemblyCopyright("Copyright © 2016-2017 madalien.com")]
+[assembly: AssemblyCopyright("Copyright © 2016-2018 madalien.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -49,5 +49,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.21.*")]
-//[assembly: AssemblyFileVersion("1.21.*")]
+[assembly: AssemblyVersion("1.22.*")]
+//[assembly: AssemblyFileVersion("1.22.*")]

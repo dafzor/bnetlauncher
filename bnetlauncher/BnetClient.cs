@@ -116,6 +116,23 @@ namespace bnetlauncher
             {
                 try
                 {
+                    //// NOTE: Test on using the battle.net client config file instead of uninstall key.
+                    //// Location of the battle.net client configuration file in JSON
+                    //var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    //    "Battle.net", "Battle.net.config");
+
+                    //// Read the config file into a string
+                    //var bnet_config = File.ReadAllText(bnet_config_file);
+
+                    //// Use a Regular expression to search for the Path option to get the path.
+                    //var match = Regex.Match(bnet_config, "\"Path\":.*\"(.*)\"");
+
+                    //if (match.Success)
+                    //{
+                    //    // 
+                    //    return match.Groups[1].Value.Replace(@"\\", @"\");
+                    //}
+
                     // Opens the registry in 32bit mode since in 64bits battle.net uninstall entry is under Wow6432Node Key
                     using (var registry = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
                     {
@@ -191,7 +208,7 @@ namespace bnetlauncher
             DateTime child_process_date = DateTime.Now;
 
             using (var searcher = new ManagementObjectSearcher(String.Format(
-                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name <> 'Battle.net Helper.exe' AND ParentProcessId = {1}",
+                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND NOT (Name LIKE 'Battle.net%.exe') AND ParentProcessId = {1}",
                 ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), GetProcessId())))
             {
                 foreach (var result in searcher.Get())
@@ -247,7 +264,7 @@ namespace bnetlauncher
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name = 'Battle.net Helper.exe'", bnet_pid)))
+                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name LIKE 'Battle.net%.exe'", bnet_pid)))
                     {
                         helper_count = searcher.Get().Count;
                     }
