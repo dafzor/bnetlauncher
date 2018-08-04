@@ -95,7 +95,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy bnetlauncher.exe g:\steam\</PostBuildEvent>
+    <PostBuildEvent>copy $(TargetPath) g:\steam\
+
+del $(ProjectName)_vLatest.zip
+7z a -tzip $(ProjectName)_vLatest.zip $(TargetPath) $(ProjectDir)license.txt $(ProjectDir)instructions.txt</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
