@@ -167,7 +167,7 @@ namespace bnetlauncher
             if (args.Length > 1)
             {
                 var option = args[1].ToLower().Trim();
-                param_ignore = (option == "-i" || option == "/i");  
+                param_ignore = (option == "-i" || option == "/i");
             }
 
             // Retrieves the first parameter that should be the game key and checks it against the games list
@@ -244,12 +244,16 @@ namespace bnetlauncher
             int game_process_id = 0;
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < 15)
             {
-                game_process_id = BnetClient.GetChildProcessIdAfterDate(launch_request_date);
+                // This is one of the dirties hacks I've ever done, and for cod of all games... sigh  
+                game_process_id = BnetClient.GetChildProcessIdAfterDate(launch_request_date,
+                    ((game_key == "VIPR") ? "BlackOps4.exe":""));
 
                 // Waits half a second to avoid weird bug where function would return process ID yet would still
                 // be run again for no reason.
                 // TODO: Understand why occasionally this loops runs more then once when it returns a process ID.
-                Thread.Sleep(500);
+
+                // Don't wait if it's Cod cause it's a damn slow game
+                if (game_key != "VIPR") Thread.Sleep(500);
             }
 
             if (game_process_id == 0)
@@ -268,7 +272,7 @@ namespace bnetlauncher
             var process = new Process() { StartInfo = GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
-            if (process.StartInfo.Arguments == "" || process.StartInfo.FileName == "")
+            if ((process.StartInfo.Arguments == "" || process.StartInfo.FileName == "") && game_key != "VIPR")
             {
                 Shared.Logger("Failed to obtain game parameters. Exiting");
 

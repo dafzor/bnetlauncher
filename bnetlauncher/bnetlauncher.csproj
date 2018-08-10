@@ -97,7 +97,7 @@
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetPath) g:\steam\
 
-del $(ProjectName)_vLatest.zip
+del $(ProjectName)_vNext.zip
 7z a -tzip $(ProjectName)_vLatest.zip $(TargetPath) $(ProjectDir)license.txt $(ProjectDir)instructions.txt</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

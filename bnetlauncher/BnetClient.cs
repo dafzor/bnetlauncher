@@ -202,14 +202,26 @@ namespace bnetlauncher
         /// </summary>
         /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
         /// <returns>Process Id of the child process.</returns>
-        public static int GetChildProcessIdAfterDate(DateTime date)
+        public static int GetChildProcessIdAfterDate(DateTime date, string exe = "")
         {
             int child_process_id = 0;
             DateTime child_process_date = DateTime.Now;
 
-            using (var searcher = new ManagementObjectSearcher(String.Format(
-                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND NOT (Name LIKE 'Battle.net%.exe') AND ParentProcessId = {1}",
-                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), GetProcessId())))
+            var wmiq = "";
+            if (exe == "")
+            {
+                wmiq = String.Format(
+                    "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND NOT (Name LIKE 'Battle.net%.exe') AND ParentProcessId = {1}",
+                    ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), GetProcessId());
+            }
+            else
+            {
+                wmiq = String.Format(
+                    "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
+                    ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), exe);
+            }
+
+            using (var searcher = new ManagementObjectSearcher(wmiq))
             {
                 foreach (var result in searcher.Get())
                 {
