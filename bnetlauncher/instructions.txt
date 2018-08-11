@@ -25,17 +25,19 @@ How to Use
 	scr		= Starcraft Remastered
 	dst2	= Destiny 2 (Overlay will not work!!! See notes bellow)
 	codbo4  = Call of Duty: Black Ops 4
-	
-	the result should look something like this:
-		"G:\Steam\bnetlauncher.exe" wow
 
-Note: Any parameter not on the list will just show an error, to ignore and continue "-i" can be added
-      after the game parameter so it looks like: "bnetlauncher.exe my_parameter -i"
 
 Destiny 2: Bungie has decided to implement anti-cheat mechanisms that also cause most overlays to
            not work as expected. See https://www.bungie.net/en/Help/Article/46101 for more information
            If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best
            option.
+
+
+Note: These are just the default games, more can be added by editing the gamedb.ini file in
+          '%localappdata%\madalien.com\bnetlauncher\gamedb.ini', you can open the location by
+          pasting the path into explorer or the run dialog in windows (WinKey+R)
+
+
 
 Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
           "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
@@ -45,7 +47,7 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
 Known Issues
 -------------
 - Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by
-  Bungie and cannot be resolved. Steam Input users can use https://alia5.github.io/GloSC/
+  Bungie and cannot be fixed. Steam Input users can use https://alia5.github.io/GloSC/ to work around it.
 - Enabling multiple instances of battle.net client in it's options will break bnetlauncher functionality.
 - Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
   with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
@@ -58,8 +60,6 @@ Known Issues
    signed in.
 - Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
-- Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
-  directory by hand.
 - There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 - On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher, moving the mouse
   over it will make it disappear.
@@ -83,6 +83,12 @@ github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support 
 
 Version History
 ---------------
+1.99 (beta)
+* Major reorganization of the code
+* Totally changed how games are launched and detected running
+- removed -i option, people launching custom games should instead edit gamedb.ini
++ added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
+
 1.22
 * Updated for changes in new Battle.net client beta.
 
