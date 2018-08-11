@@ -50,17 +50,29 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace bnetlauncher
 {
     class Program
     {
+        // List of Avaliable Clients
+        static HashSet<Client> clients = new HashSet<Client>
+        {
+            new BnetClient()
+        };
+
+        // List of games to be loaded
+        static HashSet<Game> games;
+
+
         [STAThread]
         static void Main(string[] args)
         {
             // Needed so when we show a message box it doesn't look like Windows 98
             Application.EnableVisualStyles();
 
+            #region System Checks and Log Setup
             if (!Shared.CreateDataPath())
             {
                 // No Logger call since we can't even create the directory
@@ -71,7 +83,7 @@ namespace bnetlauncher
         
             // Initiates the log file by setting append to false
             Shared.Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion), false);
-
+ 
             // check if WMI service is running, if it's not we wont be able to get any process ID
             if (!IsWMIServiceRunning())
             {
@@ -84,10 +96,10 @@ namespace bnetlauncher
 
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
-
+            #endregion
 
             // Checks if the battle.net client installLocation property is not returning an empty path
-            
+
             if (BnetClient.InstallLocation == String.Empty)
             {
                 ShowMessageAndExit("Couldn't retrive Battle.net Client install location.\n\n" +
@@ -105,6 +117,7 @@ namespace bnetlauncher
                     "Please check if Battle.net Client is properly Installed.");
             }
 
+            #region Mutex Setup
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
             // So we check if the mutex already exists and if so we wait until the existing instance releases it
             // otherwise we simply create it and continue.
@@ -144,8 +157,20 @@ namespace bnetlauncher
                         "report the issue to bnetlauncher author.",
                         "Stuck Instance");
                 }
-            }            
+            }
+            #endregion
 
+            #region Load Games List
+            // Checks if there's a gamedb.ini in the datapath and copies it over if there isn't one
+            if (!File.Exists(gamedb_file))
+            {
+                File.WriteAllText(gamedb_file, Properties.Resources.gamesdb);
+            }
+
+            #endregion
+
+
+            #region Argument Parsing
             // Parse the given arguments
             if (args.Length <= 0)
             {
@@ -213,6 +238,7 @@ namespace bnetlauncher
                 Shared.Logger(String.Format("Unknown parameter {0} given with ignore flag set, continuing", param_game));
                 game_key = param_game;
             }
+            #endregion
 
             // Make sure battle.net client is running
             if (BnetClient.GetProcessId() == 0)
@@ -642,5 +668,7 @@ namespace bnetlauncher
         /// File that serves as a lock to signal battle.net client was started by bnetlauncher.
         /// </summary>
         private static string client_lock_file = Path.Combine(Shared.DataPath, "bnetlauncher_startedclient.lock");
+
+        private static string gamedb_file = Path.Combine(Shared.DataPath, "gamedb.ini");
     }
 }

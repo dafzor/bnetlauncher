@@ -29,7 +29,7 @@ using Microsoft.Win32;
 
 namespace bnetlauncher
 {
-    static class BnetClient
+    class BnetClient: Client
     {
 
         /// <summary>
