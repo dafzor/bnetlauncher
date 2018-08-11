@@ -309,10 +309,9 @@ namespace bnetlauncher
         /// the battle.net client.</param>
         public static bool Launch(string bnet_command = "")
         {
-            var bnet_cmd = string.Format("--exec=\"launch {0}\"", bnet_command);
             try
             {
-                Process.Start(ClientExe, bnet_cmd);
+                Process.Start(ClientExe, $"--exec=\"launch {bnet_command}\"");
             }
             catch (Exception ex)
             {

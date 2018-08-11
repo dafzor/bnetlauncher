@@ -24,6 +24,12 @@ namespace bnetlauncher
 {
     class Game
     {
+
+        public Game()
+        {
+
+        }
+
         public Game(string game_id, string client_id, string game_name)
         {
             this.Id = game_id;
@@ -56,7 +62,7 @@ namespace bnetlauncher
             }
             set
             {
-                Client = value;
+                client_id = value;
             }
         }
 
@@ -75,11 +81,47 @@ namespace bnetlauncher
             }
         }
 
+        public string Cmd
+        {
+            get
+            {
+                return launch_cmd;
+            }
+            set
+            {
+                launch_cmd = value;
+            }
+        }
+
+        public string Exe
+        {
+            get
+            {
+                return game_exe;
+            }
+            set
+            {
+                game_exe = value;
+            }
+        }
+
+        public string Options
+        {
+            get
+            {
+                return options;
+            }
+            set
+            {
+                options = value.ToLower().Trim();
+            }
+        }
 
         private string game_id;
         private string client_id;
         private string game_name;
         private string launch_cmd;
         private string game_exe;
+        private string options;
     }
 }

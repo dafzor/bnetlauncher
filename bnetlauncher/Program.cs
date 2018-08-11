@@ -57,13 +57,13 @@ namespace bnetlauncher
     class Program
     {
         // List of Avaliable Clients
-        static HashSet<Client> clients = new HashSet<Client>
+        static List<Client> clients = new List<Client>
         {
             new BnetClient()
         };
 
         // List of games to be loaded
-        static HashSet<Game> games;
+        static List<Game> games = new List<Game>();
 
 
         [STAThread]
@@ -167,6 +167,20 @@ namespace bnetlauncher
                 File.WriteAllText(gamedb_file, Properties.Resources.gamesdb);
             }
 
+            // Load the gamedb into the games list
+            var gamedb = new Ini(gamedb_file);
+            foreach (var section in gamedb.GetSections())
+            {
+                games.Add(new Game
+                {
+                    Id = section,
+                    Name = gamedb.GetValue("name", section),
+                    Client = gamedb.GetValue("client", section),
+                    Cmd = gamedb.GetValue("cmd", section),
+                    Exe = gamedb.GetValue("exe", section),
+                    Options = gamedb.GetValue("options", section)
+                });              
+            }
             #endregion
 
 
@@ -178,65 +192,54 @@ namespace bnetlauncher
                 var message = "No Launch Option has been set.\n" +
                     "To launch a game please add one of the following to the launch options:\n";
 
-                foreach (var g in BnetClient.Games)
+                foreach (var g in games)
                 {
-                    message += g.Alias + "\t= " + g.Name + "\n";
+                    message += g.Id + "\t= " + g.Name + "\n";
                 }
+
+                message += "\nSee 'instructions.txt' on how to add more games.";
 
                 Shared.Logger("No parameter given, exiting");
                 ShowMessageAndExit(message, "How to Use", MessageType.Info);
             }
 
-            // Check if the ignore_key flag is passed as a second parameter
-            var param_ignore = false;
-            if (args.Length > 1)
+            // Check if the param_timeout is passed as a second parameter
+            var param_timeout = 15;
+            if (args.Length > 2)
             {
                 var option = args[1].ToLower().Trim();
-                param_ignore = (option == "-i" || option == "/i");
+                if (option == "-t" || option == "/t")
+                {
+                    param_timeout = Convert.ToInt32(args[2]);
+                }
             }
 
             // Retrieves the first parameter that should be the game key and checks it against the games list
             //  and looks for the key given in our games list, in an attempt to avoid user mistakes we
             // clean the input by forcing lowercase and strip - and / before comparing it to know alias.
-            var param_game = args[0].Trim();
+            var param_game = args[0].Trim().ToLower();
             var param_game_clean = param_game.Replace("-", "").Replace("/", "").ToLower();
             Shared.Logger("Given parameter: " + param_game);
 
-            var game_key = "";
-            foreach (var g in BnetClient.Games)
-            {
-                if (param_game_clean == g.Alias || param_game_clean == g.Key)
-                {
-                    // We got a valid alias so we replace it for the actual key
-                    // set the found_key to true and stop the search.
-                    Shared.Logger("Known key for game '" + g.Name + "'");
-                    game_key = g.Key;
-                    break;
-                }
-            }
+            var game = games.Find(g => g.Id == param_game_clean);
 
             // If the key isn't a know alias and if the ignore flag is not set give a warning about
             // invalid key.
-            if (game_key == "" && !param_ignore)
+            if (game == null)
             {
-                Shared.Logger(String.Format("Invalid key '{0}' given and ignore flag not set, exiting.", param_game));
+                Shared.Logger($"Invalid id '{param_game}' given and ignore flag not set, exiting.");
 
-                var message = String.Format("Unknown launch option '{0}' given.\n", param_game);
+                var message = $"Unknown launch option '{param_game}' given.\n";
                 message += "\nPlease use one of the know launch options:\n";
-                foreach (var g in BnetClient.Games)
+                foreach (var g in games)
                 {
-                    message += g.Alias + "\t= " + g.Name + "\n";
+                    message += $"{g.Id}\t= {g.Name}\n";
                 }
-                message += "\nIf this is really the launch option you wish to use add ' -i' after it " +
-                    " to ignore this check and use it anyway, or contact the author to add it.\n" +
+                message += $"\nPlease check '{gamedb_file}' for the correct Id.\n\n" +
+                    "If the file is corrupted you can delete it to reset it to default.\n" +
                     "bnetlauncher will now Close.\n";
 
-                ShowMessageAndExit(message, "Unknown Launch Option");
-            }
-            if (game_key == "" && param_ignore)
-            {
-                Shared.Logger(String.Format("Unknown parameter {0} given with ignore flag set, continuing", param_game));
-                game_key = param_game;
+                ShowMessageAndExit(message, "Unknown Game Option");
             }
             #endregion
 
@@ -262,34 +265,27 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game_key));
-            BnetClient.Launch(game_key);
+            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game.Cmd));
+
+            BnetClient.Launch(game.Cmd);
 
             // Searches for a game started trough the client for 15s
             Shared.Logger("Searching for new battle.net child processes for the game");
             int game_process_id = 0;
-            while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < 15)
+            while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
                 // This is one of the dirties hacks I've ever done, and for cod of all games... sigh  
-                game_process_id = BnetClient.GetChildProcessIdAfterDate(launch_request_date,
-                    ((game_key == "VIPR") ? "BlackOps4.exe":""));
-
-                // Waits half a second to avoid weird bug where function would return process ID yet would still
-                // be run again for no reason.
-                // TODO: Understand why occasionally this loops runs more then once when it returns a process ID.
-
-                // Don't wait if it's Cod cause it's a damn slow game
-                if (game_key != "VIPR") Thread.Sleep(500);
+                game_process_id = GetProcessIdAfterDateByName(launch_request_date, game.Exe);
             }
 
             if (game_process_id == 0)
             {
-                Shared.Logger("No child process game found, giving up and exiting");
+                Shared.Logger("No game process found, giving up and exiting");
 
                 // Exit Application
-                ShowMessageAndExit("Couldn't find a game started trough battle.net Client.\n" +
-                    "Please check if battle.net did not encounter an error and the game can be launched " +
-                    "normally from the battle.net client.\n\nbnetlauncher will now exit.",
+                ShowMessageAndExit("Couldn't find a game process.\n" +
+                    "Please check if the Client did not encounter an error and the game can be launched normaly.\n\n" +
+                    "bnetlauncher will now exit.",
                     "Error: Game not found");
             }
         
@@ -298,8 +294,9 @@ namespace bnetlauncher
             var process = new Process() { StartInfo = GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
-            if ((process.StartInfo.Arguments == "" || process.StartInfo.FileName == "") && game_key != "VIPR")
+            if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !game.Options.Contains("noargs")))
             {
+                Debugger.Launch();
                 Shared.Logger("Failed to obtain game parameters. Exiting");
 
                 // Exit Application in error
@@ -331,9 +328,9 @@ namespace bnetlauncher
             // HACK: Force bnetlauncher to stick around so Destiny 2 will still show in-game status on steam.
             //       This is a bad way to do this and just works around the issue without actually fixing it.
             //       Hope to find a better solution or that this will be fixed by Destiny 2 launch.
-            if (game_key == "DST2")
+            if (game.Options.Contains("waituntilexit"))
             {
-                Shared.Logger("Waiting for destiny 2 to exit");
+                Shared.Logger("Waiting for game to exit");
                 process.WaitForExit();
             }
 
@@ -458,6 +455,45 @@ namespace bnetlauncher
                 Shared.Logger(ex.ToString());
             }
 
+        }
+
+
+        private static int GetProcessIdAfterDateByName(DateTime date, string exe)
+        {
+            DateTime game_process_date = DateTime.Now;
+            int game_process_id = 0;
+
+            var wmiq = String.Format(
+                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
+                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), exe);
+
+            using (var searcher = new ManagementObjectSearcher(wmiq))
+            {
+                foreach (var result in searcher.Get())
+                {
+                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
+                    var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
+
+                    Shared.Logger(String.Format("Found game process started at '{0}' with pid = {1}", result_process_date.ToString("hh:mm:ss.ffff"), result_process_id));
+
+                    // Closest to the given date is the one we return
+                    if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)
+                    {
+                        game_process_id = result_process_id;
+                        game_process_date = result_process_date;
+                    }
+                }
+            }
+            if (game_process_id == 0)
+            {
+                Shared.Logger("No game process found.");
+            }
+            else
+            {
+                Shared.Logger(String.Format("Selecting game process started at '{0}' with pid = {1}", game_process_date.ToString("hh:mm:ss.ffff"),
+                    game_process_id));
+            }
+            return game_process_id;
         }
 
         /// <summary>
