@@ -24,83 +24,17 @@ using System.Diagnostics;
 using System.Management;
 using System.Threading;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
 using Microsoft.Win32;
 
-namespace bnetlauncher
+namespace bnetlauncher.Clients
 {
     class BnetClient: Client
     {
-
-        /// <summary>
-        /// List BnetGame objects of Known games supported by the Launch command.
-        /// </summary>
-        public static List<BnetGame> Games
+        public BnetClient()
         {
-            get
-            {
-                return new List<BnetGame>
-                {
-                    new BnetGame("WoW", "World of Warcraft", "wow"),
-                    new BnetGame("D3", "Diablo 3", "d3"),
-                    new BnetGame("WTCG", "Heartstone", "hs"),
-                    new BnetGame("Pro", "Overwatch", "ow"),
-                    new BnetGame("S2", "Starcraft 2", "sc2"),
-                    new BnetGame("Hero", "Heroes of the Storm", "hots"),
-                    new BnetGame("S1", "Starcraft Remastered", "scr"),
-                    new BnetGame("DST2", "Destiny 2", "dst2"),
-                    new BnetGame("VIPR", "Call of Duty: Black Ops 4", "codbo4")
-                };
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of battle.net helper processes that need to be running based on the
-        /// battle.net client setting HardwareAcceleration. If true there should be at least 2 helpers
-        /// otherwise only 1 is required.
-        /// </summary>
-        /// <returns>number of battle.net helper processes required.</returns>
-        public static int HelperProcessCount
-        {
-            // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
-            // would add a library dependency to the project so instead we'll do the hackish alternative
-            // of just regexing the config file.
-
-            get
-            {
-                try
-                {
-                    // Location of the battle.net client configuration file in JSON
-                    var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                        "Battle.net", "Battle.net.config");
-
-                    // Read the config file into a string
-                    var bnet_config = File.ReadAllText(bnet_config_file);
-
-                    // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
-                    // if it's ON then the client will have at least 2 Battle.net Helper running.
-                    var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
-
-                    if (match.Success)
-                    {
-                        if (match.Groups[1].Value.Equals("true"))
-                        {
-                            return 2;
-                        }
-                        else
-                        {
-                            // Hardware acceleration is off, so no GPU battle.net helper
-                            return 1;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Shared.Logger(ex.ToString());
-                }
-
-                return 2;
-            }
+            Id = "battlenet";
+            Name = "Battle.net";
+            Exe = "battle.net.exe";
         }
 
         /// <summary>
@@ -110,7 +44,7 @@ namespace bnetlauncher
         /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
-        public static string InstallLocation
+        public override string InstallPath
         {
             get
             {
@@ -145,6 +79,7 @@ namespace bnetlauncher
                                 Shared.Logger("Failed to retrieve path from battle.net uninstall entry");
                             }
 
+                            Shared.Logger($"Found battle.net path '{bnet_path}'");
                             return bnet_path;
                         }
                     }
@@ -158,96 +93,91 @@ namespace bnetlauncher
             }
         }
 
+
         /// <summary>
-        /// Returns InstallLocation combined with battle.net.exe which seems to always the be main exe for the client now
-        /// even when beta is installed.
+        /// Launches a battle.net client game using it's ID.
         /// </summary>
-        public static string ClientExe
+        /// <param name="cmd">Battle.net client ID command to launch.</param>
+        public override bool Launch(string cmd)
         {
-            get
+            try
             {
-                return Path.Combine(InstallLocation, "battle.net.exe");
+                Process.Start(System.IO.Path.Combine(InstallPath, Exe), $"--exec=\"launch {cmd}\"");
             }
+            catch (Exception ex)
+            {
+                Shared.Logger(ex.ToString());
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
-        /// Returns the process Id of the currently running Battle.Net instance.
+        /// Starts the battle.net client and returns WaitUntilReady result.
         /// </summary>
-        /// <returns>The process Id of the Battle.net launcher.</returns>
-        public static int GetProcessId()
+        /// <returns>The result of the WaitUntilReady call.</returns>
+        public override bool Start()
         {
+            // Just launches the client which is required for it to interpret launch commands properly.
+            var client = Process.Start(Path.Combine(InstallPath, Exe));
 
-            // TODO: What would happen if there's another program with a battle.net.exe running? Should we even care?
+            // Creates a file signaling that battle.net client was started by us.
+            // We explicitly call close on the file we just created so that when we try to delete the file 
+            // it's not locked causing the next launch to also trigger a close of the client.
+            File.Create(Path.Combine(Shared.DataPath, $"{Id}.started")).Close();
+
+            // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
+            // to make sure we don't get that process id but the actual client's process id. To work around it we wait
+            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+            // well (SystemSurvey.exe, Battle.net Helper.exe).
+            // TODO: Find a way to do this that doesn't feel like a hack.
+            Thread.Sleep(2000);
+            return WaitUntilReady();
+        }
+
+        /// <summary>
+        /// Returns the number of battle.net helper processes that need to be running based on the
+        /// battle.net client setting HardwareAcceleration. If true there should be at least 2 helpers
+        /// otherwise only 1 is required.
+        /// </summary>
+        /// <returns>number of battle.net helper processes required.</returns>
+        private int GetHelperProcessCount()
+        {
+            // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
+            // would add a library dependency to the project so instead we'll do the hackish alternative
+            // of just regexing the config file.
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_process WHERE Name = 'Battle.Net.Beta.exe' OR Name = 'Battle.Net.exe'"))
+                // Location of the battle.net client configuration file in JSON
+                var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Battle.net", "Battle.net.config");
+
+                // Read the config file into a string
+                var bnet_config = File.ReadAllText(bnet_config_file);
+
+                // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
+                // if it's ON then the client will have at least 2 Battle.net Helper running.
+                var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
+
+                if (match.Success)
                 {
-                    foreach (var result in searcher.Get())
+                    if (match.Groups[1].Value.Equals("true"))
                     {
-                        return Convert.ToInt32(result["ProcessId"]);
+                        return 2;
+                    }
+                    else
+                    {
+                        // Hardware acceleration is off, so no GPU battle.net helper
+                        return 1;
                     }
                 }
             }
             catch (Exception ex)
             {
-                Shared.Logger(String.Format("Error finding battle.net client pid. {0}", ex.ToString()));
-                return 0;
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Returns the first child process Id of battle.net client that's not a "battle.net helper.exe" after the
-        /// given date.
-        /// </summary>
-        /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
-        /// <returns>Process Id of the child process.</returns>
-        public static int GetChildProcessIdAfterDate(DateTime date, string exe = "")
-        {
-            int child_process_id = 0;
-            DateTime child_process_date = DateTime.Now;
-
-            var wmiq = "";
-            if (exe == "")
-            {
-                wmiq = String.Format(
-                    "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND NOT (Name LIKE 'Battle.net%.exe') AND ParentProcessId = {1}",
-                    ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), GetProcessId());
-            }
-            else
-            {
-                wmiq = String.Format(
-                    "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
-                    ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), exe);
+                Shared.Logger(ex.ToString());
             }
 
-            using (var searcher = new ManagementObjectSearcher(wmiq))
-            {
-                foreach (var result in searcher.Get())
-                {
-                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
-                    var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
-
-                    Shared.Logger(String.Format("Found battle.net child process started at '{0}' with pid = {1}", result_process_date.ToString("hh:mm:ss.ffff"), result_process_id));
-
-                    // Closest to the given date is the one we return
-                    if (result_process_date.Subtract(date).TotalMilliseconds < child_process_date.Subtract(date).TotalMilliseconds)
-                    {
-                        child_process_id = result_process_id;
-                        child_process_date = result_process_date;
-                    }
-                }
-            }
-            if (child_process_id == 0)
-            {
-                Shared.Logger("No child process found.");
-            }
-            else
-            {
-                Shared.Logger(String.Format("Selecting battle.net child started at '{0}' with pid = {1}", child_process_date.ToString("hh:mm:ss.ffff"),
-                    child_process_id));
-            }
-            return child_process_id;
+            return 2;
         }
 
         /// <summary>
@@ -258,9 +188,9 @@ namespace bnetlauncher
         /// </summary>
         /// <param name="timeout">Amount of time to check if it's fully started in seconds. Default is 120s (2 minutes)</param>
         /// <returns>True if the client is fully started, false otherwise.</returns>
-        public static bool WaitUntilReady(int timeout = 120)
+        private bool WaitUntilReady(int timeout = 120)
         {
-            int helper_required = BnetClient.HelperProcessCount;
+            int helper_required = GetHelperProcessCount();
             int helper_count = 0;
 
             int bnet_pid = GetProcessId();
@@ -276,7 +206,7 @@ namespace bnetlauncher
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name LIKE 'Battle.net%.exe'", bnet_pid)))
+                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name LIKE 'Battle.net.exe'", bnet_pid)))
                     {
                         helper_count = searcher.Get().Count;
                     }
@@ -299,46 +229,6 @@ namespace bnetlauncher
             // battle.net should be fully running
             Shared.Logger("battle.net client is fully running with pid = " + bnet_pid);
             return true;
-        }
-
-        /// <summary>
-        /// Launches a battle.net client URI command (without the battlenet://). 
-        /// </summary>
-        /// <param name="bnet_command">Battle.net client URI command to launch without
-        /// the protocol part "battlenet://", leaving it blank will launch and/or open 
-        /// the battle.net client.</param>
-        public static bool Launch(string bnet_command = "")
-        {
-            try
-            {
-                Process.Start(ClientExe, $"--exec=\"launch {bnet_command}\"");
-            }
-            catch (Exception ex)
-            {
-                Shared.Logger(ex.ToString());
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Starts the battle.net client and returns WaitUntilReady result.
-        /// </summary>
-        /// <returns>The result of the WaitUntilReady call.</returns>
-        public static bool Start()
-        {
-            // Just launches the client which is required for it to interpret launch commands properly.
-            Process.Start(ClientExe);
-
-            // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
-            // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
-            // well (SystemSurvey.exe, Battle.net Helper.exe).
-            // TODO: Find a way to do this that doesn't feel like a hack.
-            Thread.Sleep(2000);
-
-            // 
-            return WaitUntilReady();
         }
     }
 }

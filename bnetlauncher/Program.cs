@@ -56,15 +56,30 @@ namespace bnetlauncher
 {
     class Program
     {
-        // List of Avaliable Clients
+        /// <summary>
+        /// List of avaliable and supported clients
+        /// </summary>
         static List<Client> clients = new List<Client>
         {
-            new BnetClient()
+            new Clients.BnetClient()
         };
 
-        // List of games to be loaded
+        /// <summary>
+        /// List of games supported.
+        /// This list is loaded from an internal and external Ini.
+        /// </summary>
         static List<Game> games = new List<Game>();
 
+
+        /// selected game and client
+        static Client selected_client;
+        static Game selected_game;
+
+        /// <summary>
+        /// Time to Wait for a game to start.
+        /// Can be overiden with command line parameter -t ##
+        /// </summary>
+        static int param_timeout = 15;
 
         [STAThread]
         static void Main(string[] args)
@@ -72,18 +87,18 @@ namespace bnetlauncher
             // Needed so when we show a message box it doesn't look like Windows 98
             Application.EnableVisualStyles();
 
-            #region System Checks and Log Setup
+            #region System Health Checks and Log Setup
             if (!Shared.CreateDataPath())
             {
                 // No Logger call since we can't even create the directory
-                ShowMessageAndExit(String.Format("Failed to create data directory in '{0}'.\n", Shared.DataPath),
+                ShowMessageAndExit($"Failed to create data directory in '{Shared.DataPath}'.\n",
                     "Error: Write Access");
                 // Can't do a Logger call since we have no write access
             }
-        
+
             // Initiates the log file by setting append to false
-            Shared.Logger(String.Format("{0} version {1} started", Application.ProductName, Application.ProductVersion), false);
- 
+            Shared.Logger($"{Application.ProductName} version {Application.ProductVersion} started", false);
+
             // check if WMI service is running, if it's not we wont be able to get any process ID
             if (!IsWMIServiceRunning())
             {
@@ -97,25 +112,6 @@ namespace bnetlauncher
             // Logs generic Machine information for debugging purposes. 
             LogMachineInformation();
             #endregion
-
-            // Checks if the battle.net client installLocation property is not returning an empty path
-
-            if (BnetClient.InstallLocation == String.Empty)
-            {
-                ShowMessageAndExit("Couldn't retrive Battle.net Client install location.\n\n" +
-                  "Please reinstall the Battle.net Client to fix the issue\n");
-            }
-
-            // logging the client used in case something weird happens...
-            Shared.Logger(String.Format("ClientExe = '{0}'", BnetClient.ClientExe)); 
-
-            // Checks if the battle.net client exe exists
-            if (!File.Exists(BnetClient.ClientExe))
-            {
-                ShowMessageAndExit("Couldn't find the Battle.net Client exe in the following location:\n" +
-                    "'" + BnetClient.ClientExe + "'\n\n" +
-                    "Please check if Battle.net Client is properly Installed.");
-            }
 
             #region Mutex Setup
             // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
@@ -160,7 +156,9 @@ namespace bnetlauncher
             }
             #endregion
 
-            #region Load Games List
+            #region Load Games List from internal and external ini
+            //TODO: Properly deal with having to update settings
+
             // Checks if there's a gamedb.ini in the datapath and copies it over if there isn't one
             if (!File.Exists(gamedb_file))
             {
@@ -168,9 +166,11 @@ namespace bnetlauncher
             }
 
             // Load the gamedb into the games list
+            //TODO: probably try to join internal and external into one so external duplicates are ignored?
             var gamedb = new Ini(gamedb_file);
             foreach (var section in gamedb.GetSections())
             {
+                //TODO: Error checking?
                 games.Add(new Game
                 {
                     Id = section,
@@ -179,7 +179,7 @@ namespace bnetlauncher
                     Cmd = gamedb.GetValue("cmd", section),
                     Exe = gamedb.GetValue("exe", section),
                     Options = gamedb.GetValue("options", section)
-                });              
+                });
             }
             #endregion
 
@@ -189,12 +189,12 @@ namespace bnetlauncher
             if (args.Length <= 0)
             {
                 // No parameters so just Show instructions
-                var message = "No Launch Option has been set.\n" +
-                    "To launch a game please add one of the following to the launch options:\n";
+                var message = "No Game Id has been given.\n" +
+                    "To launch a game please add one of the following Ids to the launch options:\n";
 
                 foreach (var g in games)
                 {
-                    message += g.Id + "\t= " + g.Name + "\n";
+                    message += $"{g.Id}\t= {g.Name}\n";
                 }
 
                 message += "\nSee 'instructions.txt' on how to add more games.";
@@ -204,7 +204,6 @@ namespace bnetlauncher
             }
 
             // Check if the param_timeout is passed as a second parameter
-            var param_timeout = 15;
             if (args.Length > 2)
             {
                 var option = args[1].ToLower().Trim();
@@ -214,23 +213,20 @@ namespace bnetlauncher
                 }
             }
 
-            // Retrieves the first parameter that should be the game key and checks it against the games list
-            //  and looks for the key given in our games list, in an attempt to avoid user mistakes we
-            // clean the input by forcing lowercase and strip - and / before comparing it to know alias.
-            var param_game = args[0].Trim().ToLower();
-            var param_game_clean = param_game.Replace("-", "").Replace("/", "").ToLower();
-            Shared.Logger("Given parameter: " + param_game);
+            // Retrieves the first parameter that should be the game id and checks it against the games list
+            // In an attempt to avoid user mistakes we clean the input by forcing lowercase and strip - and /
+            // before comparing it to know ids.
+            var param_game = args[0].Trim().Replace("-", "").Replace("/", "").ToLower();
+            Shared.Logger($"Given parameter: {args[0]}");
+            selected_game = games.Find(g => g.Id == param_game);
 
-            var game = games.Find(g => g.Id == param_game_clean);
-
-            // If the key isn't a know alias and if the ignore flag is not set give a warning about
-            // invalid key.
-            if (game == null)
+            // If the id isn't know give a warning about invalid game.
+            if (selected_game == null)
             {
-                Shared.Logger($"Invalid id '{param_game}' given and ignore flag not set, exiting.");
+                Shared.Logger($"Unkown id '{param_game}' given, exiting.");
 
-                var message = $"Unknown launch option '{param_game}' given.\n";
-                message += "\nPlease use one of the know launch options:\n";
+                var message = $"Unknown game id '{param_game}' given.\n";
+                message += "\nPlease use one of the known game ids:\n";
                 foreach (var g in games)
                 {
                     message += $"{g.Id}\t= {g.Name}\n";
@@ -239,25 +235,42 @@ namespace bnetlauncher
                     "If the file is corrupted you can delete it to reset it to default.\n" +
                     "bnetlauncher will now Close.\n";
 
-                ShowMessageAndExit(message, "Unknown Game Option");
+                ShowMessageAndExit(message, "Unknown Game Id");
             }
             #endregion
 
+            // Checks if the game client exists
+            selected_client = clients.Find(c => c.Id == selected_game.Client);
+            if (selected_client == null)
+            {
+                var message = $"Unknown client '{selected_game.Client}'\n" +
+                    "bnetlauncher only supports the following values:\n\n";
+
+                foreach (var c in clients)
+                {
+                    message += $"  {c.Id} ({c.Name})\n";
+                }
+                message += "\nbnetlauncher will now exit.\n";
+                ShowMessageAndExit(message, "Error: Unknown client");
+            }
+
+            Shared.Logger($"Using {selected_client.Id} client.");
+
+            // Checks if the client is actually Installed installLocation property is not returning an empty path
+            if (!selected_client.IsInstalled)
+            {
+                ShowMessageAndExit($"The {selected_client.Name} client doesn't seem to be Installed.\n\n" +
+                  "Please reinstall the Battle.net Client to fix the issue\n");
+            }
+
             // Make sure battle.net client is running
-            if (BnetClient.GetProcessId() == 0)
+            if (!selected_client.IsRunning)
             {
                 // Start the client
-                if (BnetClient.Start())
+                if (!selected_client.Start())
                 {
-                    // Creates a file signaling that battle.net client was started by us.
-                    // We explicitly call close on the file we just created so that when we try to delete the file 
-                    // it's not locked causing the next launch to also trigger a close of the client.
-                    File.Create(client_lock_file).Close();
-                }
-                else
-                {
-                    Shared.Logger("battle.net not running and failed to start it. Exiting");
-                    ShowMessageAndExit("Couldn't find the battle.net running and failed to start it.\nExiting application",
+                    Shared.Logger($"Client {selected_client.Name} not running and failed to start it. Exiting");
+                    ShowMessageAndExit($"Couldn't find the {selected_client.Name} running and failed to start it.\nExiting application",
                         "Client not found");
                 }
             }
@@ -265,9 +278,9 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), game.Cmd));
+            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), selected_game.Cmd));
 
-            BnetClient.Launch(game.Cmd);
+            selected_client.Launch(selected_game.Cmd);
 
             // Searches for a game started trough the client for 15s
             Shared.Logger("Searching for new battle.net child processes for the game");
@@ -275,7 +288,7 @@ namespace bnetlauncher
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
                 // This is one of the dirties hacks I've ever done, and for cod of all games... sigh  
-                game_process_id = GetProcessIdAfterDateByName(launch_request_date, game.Exe);
+                game_process_id = GetProcessIdAfterDateByName(launch_request_date, selected_game.Exe);
             }
 
             if (game_process_id == 0)
@@ -286,7 +299,7 @@ namespace bnetlauncher
                 ShowMessageAndExit("Couldn't find a game process.\n" +
                     "Please check if the Client did not encounter an error and the game can be launched normaly.\n\n" +
                     "bnetlauncher will now exit.",
-                    "Error: Game not found");
+                    "Game not found");
             }
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
@@ -294,9 +307,8 @@ namespace bnetlauncher
             var process = new Process() { StartInfo = GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
-            if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !game.Options.Contains("noargs")))
+            if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !selected_game.Options.Contains("noargs")))
             {
-                Debugger.Launch();
                 Shared.Logger("Failed to obtain game parameters. Exiting");
 
                 // Exit Application in error
@@ -323,12 +335,12 @@ namespace bnetlauncher
             launcher_mutex.ReleaseMutex();
 
             // Closes the battle.net client (only if we launched it)
-            CloseBnetClientIfLast();
+            CloseClientIfLast();
 
             // HACK: Force bnetlauncher to stick around so Destiny 2 will still show in-game status on steam.
             //       This is a bad way to do this and just works around the issue without actually fixing it.
             //       Hope to find a better solution or that this will be fixed by Destiny 2 launch.
-            if (game.Options.Contains("waituntilexit"))
+            if (selected_game.Options.Contains("waitforexit"))
             {
                 Shared.Logger("Waiting for game to exit");
                 process.WaitForExit();
@@ -387,7 +399,7 @@ namespace bnetlauncher
                 // the mutex is abandoned.
 
                 // Did we start the battle.net launcher?
-                CloseBnetClientIfLast();
+                CloseClientIfLast();
 
                 // Cleans up the mutex
                 if (launcher_mutex != null) launcher_mutex.Close();
@@ -429,20 +441,19 @@ namespace bnetlauncher
         /// Closes the battle.net client if client_lock_file exists and we're the last running instance of
         /// bnetlauncher.
         /// </summary>
-        private static void CloseBnetClientIfLast()
+        private static void CloseClientIfLast()
         {
             try
             {
                 // Did we start the battle.net launcher?
-                if (File.Exists(client_lock_file))
+                if (selected_client.WasStarted)
                 {
                     // Attempts to get a lock on the mutex immediately, if we get true we got it and there
                     // should be no other bnetlauncher running, so we clean up.
                     if (launcher_mutex.WaitOne(0))
                     {
                         Shared.Logger("Closing battle.net client.");
-                        KillProcessAndChildren(BnetClient.GetProcessId());
-                        File.Delete(client_lock_file);
+                        selected_client.Close();
                     }
                     else
                     {
@@ -454,18 +465,21 @@ namespace bnetlauncher
             {
                 Shared.Logger(ex.ToString());
             }
-
         }
+        /// <summary>
+        /// Returns the process id of the process with the given name that's closest to the date given.
+        /// </summary>
+        /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
+        /// <returns>Process Id of the process.</returns>
+        private static int GetProcessIdAfterDateByName(DateTime date, string name)
 
-
-        private static int GetProcessIdAfterDateByName(DateTime date, string exe)
         {
             DateTime game_process_date = DateTime.Now;
             int game_process_id = 0;
 
             var wmiq = String.Format(
                 "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
-                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), exe);
+                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), name);
 
             using (var searcher = new ManagementObjectSearcher(wmiq))
             {
@@ -701,10 +715,9 @@ namespace bnetlauncher
         private const string mutex_name = "Local\\madalien.com_bnetlauncher_running";
 
         /// <summary>
-        /// File that serves as a lock to signal battle.net client was started by bnetlauncher.
+        /// External gamedb Ini from which more games can be loaded.
+        /// If it doesn't exist a copy of the internal list will be placed there.
         /// </summary>
-        private static string client_lock_file = Path.Combine(Shared.DataPath, "bnetlauncher_startedclient.lock");
-
         private static string gamedb_file = Path.Combine(Shared.DataPath, "gamedb.ini");
     }
 }
