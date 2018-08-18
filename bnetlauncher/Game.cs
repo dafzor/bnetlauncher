@@ -113,7 +113,14 @@ namespace bnetlauncher
             }
             set
             {
-                options = value.ToLower().Trim();
+                if (value is string)
+                {
+                    options = value.ToLower().Trim();
+                }
+                else
+                {
+                    options = "";
+                }
             }
         }
 
