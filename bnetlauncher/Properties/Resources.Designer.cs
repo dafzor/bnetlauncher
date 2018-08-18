@@ -66,44 +66,42 @@ namespace bnetlauncher.Properties {
         ///client=battlenet
         ///cmd=WoW
         ///exe=Wow.exe
-        ///options=
         ///
         ///[d3]
         ///name=Diablo 3
         ///client=battlenet
         ///cmd=D3
         ///exe=Diablo III64.exe
-        ///options=
         ///
         ///[hs]
         ///name=Hearthstone
         ///client=battlenet
         ///cmd=WTCG
         ///exe=Hearthstone.exe
-        ///options=
         ///
         ///[ow]
         ///name=Overwatch
         ///client=battlenet
         ///cmd=Pro
         ///exe=Overwatch.exe
-        ///options=
         ///
         ///[scr]
         ///name=Starcraft Remastered
         ///client=battlenet
         ///cmd=S1
         ///exe=StarCraft.exe
-        ///options=
         ///
         ///[sc2]
         ///name=Starcraft 2
         ///client=battlenet
         ///cmd=S2
         ///exe=SC2Switcher_x64.exe
-        ///options=
         ///
-        ///[hot [rest of string was truncated]&quot;;.
+        ///[hots]
+        ///name=Heroes of the Storm
+        ///client=battlenet
+        ///cmd=Hero
+        ///ex [rest of string was truncated]&quot;;.
         /// </summary>
         public static string gamesdb {
             get {

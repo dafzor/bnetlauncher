@@ -25,6 +25,7 @@ using System.Management;
 using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
+using bnetlauncher.Utils;
 
 namespace bnetlauncher.Clients
 {
@@ -77,18 +78,17 @@ namespace bnetlauncher.Clients
                             var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
                             if (bnet_path == "")
                             {
-                                Shared.Logger("Failed to retrieve path from battle.net uninstall entry");
+                                Logger.Error("Failed to retrieve path from battle.net uninstall entry");
                             }
 
-                            Shared.Logger($"Found battle.net path '{bnet_path}'");
+                            Logger.Information($"Found battle.net in {bnet_path}.");
                             return bnet_path;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Shared.Logger("Exception while trying to retrieve battle.net client path:");
-                    Shared.Logger(ex.ToString());
+                    Logger.Error("Failed to retrieve the client path", ex);
                     return String.Empty;
                 }
             }
@@ -103,11 +103,11 @@ namespace bnetlauncher.Clients
         {
             try
             {
-                Process.Start(System.IO.Path.Combine(InstallPath, Exe), $"--exec=\"launch {cmd}\"");
+                Process.Start(Path.Combine(InstallPath, Exe), $"--exec=\"launch {cmd}\"");
             }
             catch (Exception ex)
             {
-                Shared.Logger(ex.ToString());
+                Logger.Error($"Couldn't start game using '{cmd}'.", ex);
                 return false;
             }
             return true;
@@ -171,7 +171,7 @@ namespace bnetlauncher.Clients
             }
             catch (Exception ex)
             {
-                Shared.Logger(ex.ToString());
+                Logger.Error($"Error reading '{Id}' config file.", ex);
             }
 
             return 2;
@@ -193,7 +193,7 @@ namespace bnetlauncher.Clients
             int bnet_pid = GetProcessId();
             if (bnet_pid == 0)
             {
-                Shared.Logger("Tried to WaitUntilReady with no battle.net client running.");
+                Logger.Warning("Tried to WaitUntilReady with no battle.net client running.");
                 return false;
             }
 
@@ -210,7 +210,7 @@ namespace bnetlauncher.Clients
                 }
                 catch (Exception ex)
                 {
-                    Shared.Logger(ex.ToString());
+                    Logger.Error("Error obtaining Helper count.", ex);
                 }
 
                 Thread.Sleep(100);
@@ -219,12 +219,12 @@ namespace bnetlauncher.Clients
             // Did the helpers start or did we timeout?
             if (helper_count < helper_required)
             {
-                Shared.Logger("not enough battle.net Helpers started.");
+                Logger.Error("Timeout before enough battle.net Helpers started.");
                 return false;
             }
 
             // battle.net should be fully running
-            Shared.Logger("battle.net client is fully running with pid = " + bnet_pid);
+            Logger.Information($"Client fully running with pid:'{bnet_pid}'");
             return true;
         }
     }

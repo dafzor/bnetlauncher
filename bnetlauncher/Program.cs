@@ -53,6 +53,8 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using IniParser;
 using IniParser.Model;
+using System.Reflection;
+using bnetlauncher.Utils;
 
 namespace bnetlauncher
 {
@@ -91,22 +93,29 @@ namespace bnetlauncher
             Application.EnableVisualStyles();
 
             #region System Health Checks and Log Setup
-            if (!Shared.CreateDataPath())
+            try
             {
+                // creates the datapath to make sure it exists
+                Directory.CreateDirectory(DataPath);
+            }
+            catch(Exception ex)
+            {
+                Logger.Error($"Couldn't create {DataPath} directory.");
+
                 // No Logger call since we can't even create the directory
-                ShowMessageAndExit($"Failed to create data directory in '{Shared.DataPath}'.\n",
-                    "Error: Write Access");
-                // Can't do a Logger call since we have no write access
+                ShowMessageAndExit($"Failed to create data directory in '{DataPath}'.\n{ex.ToString()}",
+                    "Write Access");
             }
 
-            // Initiates the log file by setting append to false
-            Shared.Logger($"{Application.ProductName} version {Application.ProductVersion} started", false);
+            // Marks the begining of a new log cycle
+            Logger.Information($"Starting {VersionInfo.FileDescription} v{VersionInfo.ProductVersion}");
 
-            // check if WMI service is running, if it's not we wont be able to get any process ID
+
+            // check if WMI service is running, if it's not we wont be able to get any process information
             if (!IsWMIServiceRunning())
             {
-                Shared.Logger("WMI service not running, Exiting");
-                // The WMI service is not running, Inform the user.
+                Logger.Error("WMI service not running");
+
                 ShowMessageAndExit("The \"Windows Management Instrumentation\" service is not running.\n" +
                     "This service is required for bnetlauncher to function properly, please make sure it's enabled, before trying again.",
                     "WMI service not running");
@@ -133,7 +142,7 @@ namespace bnetlauncher
 
                 message += "\nSee 'instructions.txt' on how to add more games.";
 
-                Shared.Logger("No parameter given, exiting");
+                Logger.Warning("No parameter given.");
                 ShowMessageAndExit(message, "How to Use", MessageType.Info);
             }
 
@@ -143,7 +152,15 @@ namespace bnetlauncher
                 var option = args[1].ToLower().Trim();
                 if (option == "-t" || option == "/t")
                 {
-                    param_timeout = Convert.ToInt32(args[2]);
+                    try
+                    {
+                        param_timeout = Convert.ToInt32(args[2]);
+                        Logger.Information($"Changing timeout to {param_timeout}");
+                    }
+                    catch(Exception ex)
+                    {
+                        Logger.Warning($"Couldn't convert timeout:'{args[2]}' into integer, ignoring and continuing.", ex);
+                    }
                 }
             }
 
@@ -151,13 +168,13 @@ namespace bnetlauncher
             // In an attempt to avoid user mistakes we clean the input by forcing lowercase and strip - and /
             // before comparing it to know ids.
             var param_game = args[0].Trim().Replace("-", "").Replace("/", "").ToLower();
-            Shared.Logger($"Given parameter: {args[0]}");
+            Logger.Information($"Given parameter '{args[0]}'.");
             selected_game = games.Find(g => g.Id == param_game);
 
             // If the id isn't know give a warning about invalid game.
             if (selected_game == null)
             {
-                Shared.Logger($"Unkown id '{param_game}' given, exiting.");
+                Logger.Error($"Unknown game '{param_game}'.");
 
                 var message = $"Unknown game id '{param_game}' given.\n";
                 message += "\nPlease use one of the known game ids:\n";
@@ -187,7 +204,7 @@ namespace bnetlauncher
                 ShowMessageAndExit(message, "Error: Unknown client");
             }
 
-            Shared.Logger($"Using {selected_client.Id} client.");
+            Logger.Information($"Using '{selected_client.Id}' client.");
 
             // Checks if the client is actually Installed installLocation property is not returning an empty path
             if (!selected_client.IsInstalled)
@@ -203,7 +220,7 @@ namespace bnetlauncher
             // This tries to avoid two instances of bnetlauncher from swapping the games they're launching.
             try
             {
-                Shared.Logger("Checking for other bnetlauncher processes using same client");
+                Logger.Information("Checking for other bnetlauncher processes using same client");
                 mutex_name += selected_client.Id;
 
                 launcher_mutex = Mutex.OpenExisting(mutex_name);
@@ -211,13 +228,13 @@ namespace bnetlauncher
             catch (WaitHandleCannotBeOpenedException)
             {
                 // Named Mutex doesn't exist yet, so we'll create it
-                Shared.Logger("No other bnetlauncher detected");
+                Logger.Information("No other bnetlauncher detected");
                 launcher_mutex = new Mutex(false, mutex_name);
             }
             catch (Exception ex)
             {
                 // Unknown problem
-                Shared.Logger(ex.ToString());
+                Logger.Error("Unknown error opening mutex.", ex);
                 ShowMessageAndExit("A mutex exception has occurred:\n" + ex.ToString(),
                     "Mutex Exception");
             }
@@ -227,12 +244,12 @@ namespace bnetlauncher
             var start = DateTime.Now;
             while (!launcher_mutex.WaitOne(1000))
             {
-                Shared.Logger("Waiting for another bnetlauncher instance to finish.");
+                Logger.Information("Waiting for another bnetlauncher instance to finish.");
 
                 // If we don't get released for over a minute it's likely something went very wrong so we quit.
                 if (DateTime.Now.Subtract(start).TotalMinutes > 1)
                 {
-                    Shared.Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
+                    Logger.Error("Waiting for over 1 minute, assuming something is wrong and exiting");
                     ShowMessageAndExit("A previous bnetlauncher instance seems to have not properly exited.\n" +
                         "Try using Windows Task Manager to Close it and try again, if the problem persists " +
                         "report the issue to bnetlauncher author.",
@@ -247,7 +264,7 @@ namespace bnetlauncher
                 // Start the client
                 if (!selected_client.Start())
                 {
-                    Shared.Logger($"Client {selected_client.Name} not running and failed to start it. Exiting");
+                    Logger.Information($"Client '{selected_client.Name}' not running and/or failed to start it.");
                     ShowMessageAndExit($"Couldn't find the {selected_client.Name} running and failed to start it.\nExiting application",
                         "Client not found");
                 }
@@ -257,12 +274,12 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Shared.Logger(String.Format("Issuing game launch command '{1}' at '{0}'", launch_request_date.ToString("hh:mm:ss.ffff"), selected_game.Cmd));
+            Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
 
             selected_client.Launch(selected_game.Cmd);
 
             // Searches for a game started trough the client for 15s
-            Shared.Logger("Searching for new battle.net child processes for the game");
+            Logger.Information("Searching for new battle.net child processes for the game");
             int game_process_id = 0;
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
@@ -272,7 +289,7 @@ namespace bnetlauncher
 
             if (game_process_id == 0)
             {
-                Shared.Logger("No game process found, giving up and exiting");
+                Logger.Error("No game process found, giving up and exiting");
 
                 // Exit Application
                 ShowMessageAndExit("Couldn't find a game process.\n" +
@@ -288,7 +305,7 @@ namespace bnetlauncher
             // Make sure our StartInfo is actually filled and not blank
             if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !selected_game.Options.Contains("noargs")))
             {
-                Shared.Logger("Failed to obtain game parameters. Exiting");
+                Logger.Error("Failed to obtain game parameters.");
 
                 // Exit Application in error
                 ShowMessageAndExit("Failed to retrieve game parameters.\nGame might start but steam overlay won't be attached to it.\n" +
@@ -299,13 +316,13 @@ namespace bnetlauncher
 
             try
             {
-                Shared.Logger("Closing game process and starting it under bnetlauncher");
+                Logger.Information("Closing game process and starting it under bnetlauncher");
                 KillProcessAndChildren(game_process_id);
                 process.Start();
             }
             catch (Exception ex)
             {
-                Shared.Logger(ex.ToString());
+                Logger.Error("Failed to relaunch game under bnetliancher.", ex);
                 ShowMessageAndExit("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
                     "Failed to Launch");
             }
@@ -323,7 +340,7 @@ namespace bnetlauncher
             // For games that require the client or bnetlauncher to stick around we wait
             if (selected_game.Options.Contains("waitforexit") || selected_client.MustBeRunning)
             {
-                Shared.Logger("Waiting for game to exit");
+                Logger.Information("Waiting for game to exit");
                 process.WaitForExit();
 
                 //// Get the process again because sometimes what we start isn't what's still running
@@ -342,7 +359,7 @@ namespace bnetlauncher
             // Finally we close the client when we're done
             CloseClientIfLast();
 
-            Shared.Logger("All operations successful, exiting");
+            Logger.Information("All operations successful, exiting");
             launcher_mutex.Close();
         }
 
@@ -405,11 +422,11 @@ namespace bnetlauncher
                 // ignore the two possible Exceptions
                 // ApplicationException - The calling thread does not own the mutex.
                 // ObjectDisposedException - The current instance has already been disposed.
-                Shared.Logger("Exception: " + ex.ToString());
+                Logger.Error("Error releasing the mutex.", ex);
             }
 
             // calls the end of the application
-            Shared.Logger("exiting with error: " + message);
+            Logger.Information($"Exiting.");
             Environment.Exit(exit_code);
         }
 
@@ -423,8 +440,10 @@ namespace bnetlauncher
             string[] gamedb_files =
             {
                 Path.Combine(Application.StartupPath, "gamedb.ini"),
-                Path.Combine(Shared.DataPath, "gamedb.ini")
+                Path.Combine(Program.DataPath, "gamedb.ini")
             };
+
+            Logger.Information("Loading gamedb files.");
             
             var gamedb = new IniData();
 
@@ -433,14 +452,19 @@ namespace bnetlauncher
                 // Checks if there's a gamedb.ini and loads it if  in the datapath and copies it over if there isn't one
                 if (File.Exists(file))
                 {
-                    var ini_file = new FileIniDataParser();
-                    gamedb.Merge(ini_file.ReadFile(file));
+                    var ini_filedata = (new FileIniDataParser()).ReadFile(file);
+                    gamedb.Merge(ini_filedata);
+
+                    Logger.Information($"Loaded '{file}' with '{ini_filedata.Sections.Count}' games.");
                 }
             }
 
             // Loads internal gamedb overiding the file loaded
             var ini_parser = new IniParser.Parser.IniDataParser();
-            gamedb.Merge(ini_parser.Parse(Properties.Resources.gamesdb));
+            var ini_data = ini_parser.Parse(Properties.Resources.gamesdb);
+
+            gamedb.Merge(ini_data);
+            Logger.Information($"Loaded internal gamedb with '{ini_data.Sections.Count}' games.");
 
             // Load the gamedb into the games list
             foreach (var section in gamedb.Sections)
@@ -456,6 +480,8 @@ namespace bnetlauncher
                     Options = section.Keys["options"]
                 });
             }
+
+            Logger.Information($"Known games: '{games.Count}'.");
         }
 
         /// <summary>
@@ -493,18 +519,19 @@ namespace bnetlauncher
                     // should be no other bnetlauncher running, so we clean up.
                     if (launcher_mutex.WaitOne(0))
                     {
-                        Shared.Logger($"Closing {selected_client.Id} client.");
+                        Logger.Information($"Closing client '{selected_client.Id}'.");
                         selected_client.Close();
                     }
                     else
                     {
-                        Shared.Logger("mutex returned false on exit");
+                        Logger.Information($"Leaving client '{selected_client.Id}' open.");
                     }
                 }
             }
             catch (Exception ex)
             {
-                Shared.Logger(ex.ToString());
+                // TODO:  Is anything actually throwing exeptions?
+                Logger.Error($"Failed to close client.", ex);
             }
         }
         /// <summary>
@@ -529,7 +556,7 @@ namespace bnetlauncher
                     var result_process_id = Convert.ToInt32(result["ProcessId"]);
                     var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
 
-                    Shared.Logger(String.Format("Found game process started at '{0}' with pid = {1}", result_process_date.ToString("hh:mm:ss.ffff"), result_process_id));
+                    Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff")}' with pid = {result_process_id}");
 
                     // Closest to the given date is the one we return
                     if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)
@@ -541,12 +568,11 @@ namespace bnetlauncher
             }
             if (game_process_id == 0)
             {
-                Shared.Logger("No game process found.");
+                Logger.Warning("No game process found.");
             }
             else
             {
-                Shared.Logger(String.Format("Selecting game process started at '{0}' with pid = {1}", game_process_date.ToString("hh:mm:ss.ffff"),
-                    game_process_id));
+                Logger.Information($"Selecting game process started at '{game_process_date.ToString("hh:mm:ss.ffff")}' with pid = {game_process_id}");
             }
             return game_process_id;
         }
@@ -557,6 +583,12 @@ namespace bnetlauncher
         /// <param name="process_id">Process ID.</param>
         public static void KillProcessAndChildren(int process_id)
         {
+            if (process_id == 0)
+            {
+                Logger.Warning("Attempted to kill child proccess of 0.");
+                return;
+            }
+
             using (var searcher = new ManagementObjectSearcher(
                 String.Format("SELECT * FROM Win32_Process WHERE ParentProcessId = {0}", process_id)))
             {
@@ -575,8 +607,29 @@ namespace bnetlauncher
                 }
                 catch (Exception ex)
                 {
-                    Shared.Logger(ex.ToString());
+                    Logger.Information(ex.ToString());
                 }
+            }
+        }
+
+        internal static FileVersionInfo VersionInfo
+        {
+            get
+            {
+                return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+            }
+        }
+
+        /// <summary>
+        /// Path used to save program data like the debug logs, gamedb confi and client.lock files.
+        /// </summary>
+        internal static string DataPath
+        {
+            get
+            {
+                // For some insane reason FileDescription has the assembly title.
+                return Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData), VersionInfo.CompanyName, VersionInfo.FileDescription);
             }
         }
 
@@ -600,7 +653,7 @@ namespace bnetlauncher
             bool done = false;
             while (retry < retry_count && done != true)
             {
-                Shared.Logger(String.Format("Attempt {0} to find start parameters", retry));
+                Logger.Information($"Attempt {retry} to find start parameters");
                 try
                 {
                     // IMPORTANT: We use System.Management API because Process.StartInfo is not populated if used on processes that we
@@ -632,16 +685,15 @@ namespace bnetlauncher
                 }
                 catch (Exception ex)
                 {
-                    Shared.Logger(String.Format("Failed attempt {0}", retry));
-                    Shared.Logger(ex.ToString());
+                    Logger.Warning($"Failed attempt '{retry}'", ex);
                 }
 
                 retry += 1;
                 Thread.Sleep(100);
             }
 
-            Shared.Logger("Filename = " + start_info.FileName);
-            Shared.Logger("Arguments = " + start_info.Arguments);
+            Logger.Information($"Filename:'{start_info.FileName}'.");
+            Logger.Information($"Arguments:'{start_info.Arguments}'.");
             return start_info;
         }
 
@@ -669,11 +721,11 @@ namespace bnetlauncher
         {
             // This information can't be fully trusted since Windows will lie about it's version if we don't include
             // explicit support in the app.manifest. 
-            Shared.Logger(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
+            Logger.Information(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
                 (Environment.Is64BitProcess ? "64bit" : "32bit")));
 
 
-            Shared.Logger("Getting Machine details:");
+            Logger.Information("Getting Machine details:");
             var machine_info = new MachineInfo();
 
             try
@@ -735,14 +787,14 @@ namespace bnetlauncher
             }
             catch (Exception ex)
             {
-                Shared.Logger(String.Format("Error Getting Machine information. {0}", ex.ToString()));
+                Logger.Information(String.Format("Error Getting Machine information. {0}", ex.ToString()));
             }
 
-            Shared.Logger(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
+            Logger.Information(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
                 machine_info.os_bits, machine_info.os_locale));
-            Shared.Logger(String.Format("CPU: {0}; RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
-            Shared.Logger(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
-            Shared.Logger(String.Format("HDD: {0}", machine_info.hdd_name));
+            Logger.Information(String.Format("CPU: {0}, RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
+            Logger.Information(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
+            Logger.Information(String.Format("HDD: {0}", machine_info.hdd_name));
         }
 
         /// <summary>

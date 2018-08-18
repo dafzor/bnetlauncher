@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Management;
+using bnetlauncher.Utils;
 
 namespace bnetlauncher
 {
@@ -96,7 +97,7 @@ namespace bnetlauncher
             }
             catch (Exception ex)
             {
-                Shared.Logger($"Error finding {Id} client pid. {ex.ToString()}");
+                Logger.Error($"Error finding client '{Id}' process id.", ex);
             }
             return 0;
         }
@@ -158,7 +159,7 @@ namespace bnetlauncher
             }
             catch (Exception ex)
             {
-                Shared.Logger(ex.ToString());
+                Logger.Error($"Error while starting '{Id}'.", ex);
                 return false;
             }
             return true;
@@ -182,7 +183,7 @@ namespace bnetlauncher
             public LockFile(Client client)
             {
                 this.client = client;
-                lock_file = Path.Combine(Shared.DataPath, $"{client.Id}.lock");
+                lock_file = Path.Combine(Program.DataPath, $"{client.Id}.lock");
             }
 
             /// <summary>
