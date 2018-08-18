@@ -155,7 +155,7 @@ namespace bnetlauncher
                     try
                     {
                         param_timeout = Convert.ToInt32(args[2]);
-                        Logger.Information($"Changing timeout to {param_timeout}");
+                        Logger.Information($"Changing timeout to '{param_timeout}'.");
                     }
                     catch(Exception ex)
                     {
@@ -279,7 +279,7 @@ namespace bnetlauncher
             selected_client.Launch(selected_game.Cmd);
 
             // Searches for a game started trough the client for 15s
-            Logger.Information("Searching for new battle.net child processes for the game");
+            Logger.Information($"Searching for the game process '{selected_game.Exe}' for '{param_timeout}' seconds.");
             int game_process_id = 0;
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
@@ -289,7 +289,7 @@ namespace bnetlauncher
 
             if (game_process_id == 0)
             {
-                Logger.Error("No game process found, giving up and exiting");
+                Logger.Error("No game process found, giving up.");
 
                 // Exit Application
                 ShowMessageAndExit("Couldn't find a game process.\n" +

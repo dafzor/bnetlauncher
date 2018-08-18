@@ -81,7 +81,7 @@ namespace bnetlauncher.Clients
                                 Logger.Error("Failed to retrieve path from battle.net uninstall entry");
                             }
 
-                            Logger.Information($"Found battle.net in {bnet_path}.");
+                            Logger.Information($"Found battle.net in '{bnet_path}'.");
                             return bnet_path;
                         }
                     }

@@ -14,10 +14,14 @@ namespace bnetlauncher.Utils
         public static bool OutputToFile { get; set; }
         public static bool OutPutToConsole { get; set; }
 
+        private static readonly string log_file = Path.Combine(Program.DataPath, $"debug_{Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd")}.log");
+
         static Logger()
         {
             OutPutToConsole = Environment.UserInteractive;
-            OutputToFile = true;
+            OutputToFile = File.Exists(Path.Combine(Program.DataPath, "enablelog")) ||
+                File.Exists(Path.Combine(Program.DataPath, "enablelog.txt")) ||
+                File.Exists(Path.Combine(Program.DataPath, "enablelog.txt.txt"));
         }
 
         public static void Information(string message,
@@ -65,18 +69,6 @@ namespace bnetlauncher.Utils
 
         private static void WriteLog(string line)
         {
-            if (!File.Exists(Path.Combine(Program.DataPath, "enablelog")) &&
-                !File.Exists(Path.Combine(Program.DataPath, "enablelog.txt")) &&
-                !File.Exists(Path.Combine(Program.DataPath, "enablelog.txt.txt")))
-            {
-                // only enable logging if a file named enablelog exists in 
-                return;
-            }
-
-            var log_file = Path.Combine(Program.DataPath, "debug_" +
-                Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd") + ".log");
-
-
             StreamWriter file = new StreamWriter(log_file, true);
             file.WriteLine(line);
             file.Close();
