@@ -114,49 +114,6 @@ namespace bnetlauncher
             LogMachineInformation();
             #endregion
 
-            #region Mutex Setup
-            // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
-            // So we check if the mutex already exists and if so we wait until the existing instance releases it
-            // otherwise we simply create it and continue.
-            // This tries to avoid two instances of bnetlauncher from swapping the games they're launching.
-            try
-            {
-                Shared.Logger("Checking for other bnetlauncher processes");
-                launcher_mutex = Mutex.OpenExisting(mutex_name);
-            }
-            catch (WaitHandleCannotBeOpenedException)
-            {
-                // Named Mutex doesn't exist yet, so we'll create it
-                Shared.Logger("No other bnetlauncher detected");
-                launcher_mutex = new Mutex(false, mutex_name);
-            }
-            catch (Exception ex)
-            {
-                // Unknown problem
-                Shared.Logger(ex.ToString());
-                ShowMessageAndExit("A mutex exception has occurred:\n" + ex.ToString(),
-                    "Mutex Exception");
-            }
-
-            // Waits for the mutex to be released before continuing, writes a message every second for debug purposes
-            // we check for time 
-            var start = DateTime.Now;
-            while (!launcher_mutex.WaitOne(1000))
-            {
-                Shared.Logger("Waiting for another bnetlauncher instance to finish.");
-
-                // If we don't get released for over a minute it's likely something went very wrong so we quit.
-                if (DateTime.Now.Subtract(start).TotalMinutes > 1)
-                {
-                    Shared.Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
-                    ShowMessageAndExit("A previous bnetlauncher instance seems to have not properly exited.\n" +
-                        "Try using Windows Task Manager to Close it and try again, if the problem persists " +
-                        "report the issue to bnetlauncher author.",
-                        "Stuck Instance");
-                }
-            }
-            #endregion
-
             #region Load Games List from internal and external ini
             //TODO: Properly deal with having to update settings
 
@@ -183,7 +140,6 @@ namespace bnetlauncher
                 });
             }
             #endregion
-
 
             #region Argument Parsing
             // Parse the given arguments
@@ -264,6 +220,51 @@ namespace bnetlauncher
                   "Please reinstall the Battle.net Client to fix the issue\n");
             }
 
+            #region Mutex Setup to enforce single bnetlancher instance
+            // We use a Local named Mutex to keep two instances of bnetlauncher from working at the same time.
+            // So we check if the mutex already exists and if so we wait until the existing instance releases it
+            // otherwise we simply create it and continue.
+            // This tries to avoid two instances of bnetlauncher from swapping the games they're launching.
+            try
+            {
+                Shared.Logger("Checking for other bnetlauncher processes using same client");
+                mutex_name += selected_client.Id;
+
+                launcher_mutex = Mutex.OpenExisting(mutex_name);
+            }
+            catch (WaitHandleCannotBeOpenedException)
+            {
+                // Named Mutex doesn't exist yet, so we'll create it
+                Shared.Logger("No other bnetlauncher detected");
+                launcher_mutex = new Mutex(false, mutex_name);
+            }
+            catch (Exception ex)
+            {
+                // Unknown problem
+                Shared.Logger(ex.ToString());
+                ShowMessageAndExit("A mutex exception has occurred:\n" + ex.ToString(),
+                    "Mutex Exception");
+            }
+
+            // Waits for the mutex to be released before continuing, writes a message every second for debug purposes
+            // we check for time 
+            var start = DateTime.Now;
+            while (!launcher_mutex.WaitOne(1000))
+            {
+                Shared.Logger("Waiting for another bnetlauncher instance to finish.");
+
+                // If we don't get released for over a minute it's likely something went very wrong so we quit.
+                if (DateTime.Now.Subtract(start).TotalMinutes > 1)
+                {
+                    Shared.Logger("Waiting for over 1 minute, assuming something is wrong and exiting");
+                    ShowMessageAndExit("A previous bnetlauncher instance seems to have not properly exited.\n" +
+                        "Try using Windows Task Manager to Close it and try again, if the problem persists " +
+                        "report the issue to bnetlauncher author.",
+                        "Stuck Instance");
+                }
+            }
+            #endregion
+
             // Make sure battle.net client is running
             if (!selected_client.IsRunning)
             {
@@ -276,6 +277,7 @@ namespace bnetlauncher
                 }
             }
 
+            #region Launch Game
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
@@ -331,6 +333,7 @@ namespace bnetlauncher
                 ShowMessageAndExit("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
                     "Failed to Launch");
             }
+            #endregion // Launch game
 
             // Release the mutex to allow another instance of bnetlauncher to grab it and do work
             launcher_mutex.ReleaseMutex();
@@ -727,9 +730,9 @@ namespace bnetlauncher
         private static Mutex launcher_mutex = null;
 
         /// <summary>
-        /// Constant String that identifies the named mutex.
+        /// String that identifies the named mutex.
         /// </summary>
-        private const string mutex_name = "Local\\madalien.com_bnetlauncher_running";
+        private static string mutex_name = "Local\\madalien.com_bnetlauncher_";
 
         /// <summary>
         /// External gamedb Ini from which more games can be loaded.

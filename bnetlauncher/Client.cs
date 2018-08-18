@@ -196,7 +196,7 @@ namespace bnetlauncher
             }
 
             /// <summary>
-            /// 
+            /// Deletes the lock file.
             /// </summary>
             public void Delete()
             {
