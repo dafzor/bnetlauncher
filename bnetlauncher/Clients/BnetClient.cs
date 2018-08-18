@@ -35,6 +35,7 @@ namespace bnetlauncher.Clients
             Id = "battlenet";
             Name = "Battle.net";
             Exe = "battle.net.exe";
+            MustBeRunning = false;
         }
 
         /// <summary>
@@ -121,11 +122,7 @@ namespace bnetlauncher.Clients
             // Just launches the client which is required for it to interpret launch commands properly.
             var client = Process.Start(Path.Combine(InstallPath, Exe));
 
-            // Creates a file signaling that battle.net client was started by us.
-            // We explicitly call close on the file we just created so that when we try to delete the file 
-            // it's not locked causing the next launch to also trigger a close of the client.
-            File.Create(Path.Combine(Shared.DataPath, $"{Id}.started")).Close();
-
+            lockfile.Create();
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
             // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 

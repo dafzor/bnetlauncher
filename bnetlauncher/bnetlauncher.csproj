@@ -73,6 +73,7 @@
     <Compile Include="Clients\BnetClient.cs" />
     <Compile Include="BnetGame.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="Clients\UplayClient.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Ini.cs" />
     <Compile Include="Program.cs" />

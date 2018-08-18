@@ -61,7 +61,8 @@ namespace bnetlauncher
         /// </summary>
         static List<Client> clients = new List<Client>
         {
-            new Clients.BnetClient()
+            new Clients.BnetClient(),
+            new Clients.UplayClient()
         };
 
         /// <summary>
@@ -320,7 +321,7 @@ namespace bnetlauncher
 
             try
             {
-                Shared.Logger("Closing battle.net child game process and starting it under bnetlauncher");
+                Shared.Logger("Closing game process and starting it under bnetlauncher");
                 KillProcessAndChildren(game_process_id);
                 process.Start();
             }
@@ -334,17 +335,33 @@ namespace bnetlauncher
             // Release the mutex to allow another instance of bnetlauncher to grab it and do work
             launcher_mutex.ReleaseMutex();
 
-            // Closes the battle.net client (only if we launched it)
-            CloseClientIfLast();
+            // If we launched the client and it's not needed we can close it early
+            if (!selected_client.MustBeRunning)
+            {
+                CloseClientIfLast();
+            }
 
-            // HACK: Force bnetlauncher to stick around so Destiny 2 will still show in-game status on steam.
-            //       This is a bad way to do this and just works around the issue without actually fixing it.
-            //       Hope to find a better solution or that this will be fixed by Destiny 2 launch.
-            if (selected_game.Options.Contains("waitforexit"))
+            // For games that require the client or bnetlauncher to stick around we wait
+            if (selected_game.Options.Contains("waitforexit") || selected_client.MustBeRunning)
             {
                 Shared.Logger("Waiting for game to exit");
                 process.WaitForExit();
+
+                //// Get the process again because sometimes what we start isn't what's still running
+                //int extra = 1;
+                //while (extra > 0)
+                //{
+                //    extra = Process.GetProcessesByName(selected_game.Exe).Length;
+                //    if (extra > 0)
+                //    {
+                //        var p2 = Process.GetProcessesByName(selected_game.Exe)[0];
+                //        p2.WaitForExit();
+                //    }
+                //}
             }
+
+            // Finally we close the client when we're done
+            CloseClientIfLast();
 
             Shared.Logger("All operations successful, exiting");
             launcher_mutex.Close();
@@ -452,7 +469,7 @@ namespace bnetlauncher
                     // should be no other bnetlauncher running, so we clean up.
                     if (launcher_mutex.WaitOne(0))
                     {
-                        Shared.Logger("Closing battle.net client.");
+                        Shared.Logger($"Closing {selected_client.Id} client.");
                         selected_client.Close();
                     }
                     else
