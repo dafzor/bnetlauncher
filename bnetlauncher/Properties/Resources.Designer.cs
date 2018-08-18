@@ -64,44 +64,46 @@ namespace bnetlauncher.Properties {
         ///   Looks up a localized string similar to [wow]
         ///name=World of Warcraft
         ///client=battlenet
-        ///launch=WoW
+        ///cmd=WoW
         ///exe=Wow.exe
         ///options=
         ///
         ///[d3]
         ///name=Diablo 3
         ///client=battlenet
-        ///launch=D3
+        ///cmd=D3
         ///exe=Diablo III64.exe
         ///options=
         ///
         ///[hs]
         ///name=Hearthstone
         ///client=battlenet
-        ///launch=WTCG
+        ///cmd=WTCG
         ///exe=Hearthstone.exe
         ///options=
         ///
         ///[ow]
         ///name=Overwatch
         ///client=battlenet
-        ///launch=Pro
+        ///cmd=Pro
         ///exe=Overwatch.exe
         ///options=
         ///
         ///[scr]
         ///name=Starcraft Remastered
         ///client=battlenet
-        ///launch=S1
+        ///cmd=S1
         ///exe=StarCraft.exe
         ///options=
         ///
         ///[sc2]
         ///name=Starcraft 2
         ///client=battlenet
-        ///launch=S2
-        ///exe=SC2_x64.exe
-        ///option [rest of string was truncated]&quot;;.
+        ///cmd=S2
+        ///exe=SC2Switcher_x64.exe
+        ///options=
+        ///
+        ///[hot [rest of string was truncated]&quot;;.
         /// </summary>
         public static string gamesdb {
             get {

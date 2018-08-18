@@ -51,6 +51,8 @@ using System.Management;
 using System.Threading;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using IniParser;
+using IniParser.Model;
 
 namespace bnetlauncher
 {
@@ -114,32 +116,7 @@ namespace bnetlauncher
             LogMachineInformation();
             #endregion
 
-            #region Load Games List from internal and external ini
-            //TODO: Properly deal with having to update settings
-
-            // Checks if there's a gamedb.ini in the datapath and copies it over if there isn't one
-            if (!File.Exists(gamedb_file))
-            {
-                File.WriteAllText(gamedb_file, Properties.Resources.gamesdb);
-            }
-
-            // Load the gamedb into the games list
-            //TODO: probably try to join internal and external into one so external duplicates are ignored?
-            var gamedb = new Ini(gamedb_file);
-            foreach (var section in gamedb.GetSections())
-            {
-                //TODO: Error checking?
-                games.Add(new Game
-                {
-                    Id = section,
-                    Name = gamedb.GetValue("name", section),
-                    Client = gamedb.GetValue("client", section),
-                    Cmd = gamedb.GetValue("cmd", section),
-                    Exe = gamedb.GetValue("exe", section),
-                    Options = gamedb.GetValue("options", section)
-                });
-            }
-            #endregion
+            LoadGames();
 
             #region Argument Parsing
             // Parse the given arguments
@@ -188,8 +165,7 @@ namespace bnetlauncher
                 {
                     message += $"{g.Id}\t= {g.Name}\n";
                 }
-                message += $"\nPlease check '{gamedb_file}' for the correct Id.\n\n" +
-                    "If the file is corrupted you can delete it to reset it to default.\n" +
+                message += $"\nPlease check if the Id exists.\n\n" +
                     "bnetlauncher will now Close.\n";
 
                 ShowMessageAndExit(message, "Unknown Game Id");
@@ -435,6 +411,51 @@ namespace bnetlauncher
             // calls the end of the application
             Shared.Logger("exiting with error: " + message);
             Environment.Exit(exit_code);
+        }
+
+        /// <summary>
+        /// Loads the games from a gamedb.ini file and internal settings.
+        /// It will search for the files in bnetlauncher folder or it's appdata.
+        /// </summary>
+        private static void LoadGames()
+        {
+            // Name of external gamedb file
+            string[] gamedb_files =
+            {
+                Path.Combine(Application.StartupPath, "gamedb.ini"),
+                Path.Combine(Shared.DataPath, "gamedb.ini")
+            };
+            
+            var gamedb = new IniData();
+
+            foreach (var file in gamedb_files)
+            {
+                // Checks if there's a gamedb.ini and loads it if  in the datapath and copies it over if there isn't one
+                if (File.Exists(file))
+                {
+                    var ini_file = new FileIniDataParser();
+                    gamedb.Merge(ini_file.ReadFile(file));
+                }
+            }
+
+            // Loads internal gamedb overiding the file loaded
+            var ini_parser = new IniParser.Parser.IniDataParser();
+            gamedb.Merge(ini_parser.Parse(Properties.Resources.gamesdb));
+
+            // Load the gamedb into the games list
+            foreach (var section in gamedb.Sections)
+            {
+                //TODO: Error checking?
+                games.Add(new Game
+                {
+                    Id = section.SectionName,
+                    Name = section.Keys["name"],
+                    Client = section.Keys["client"],
+                    Cmd = section.Keys["cmd"],
+                    Exe = section.Keys["exe"],
+                    Options = section.Keys["options"]
+                });
+            }
         }
 
         /// <summary>
@@ -733,11 +754,5 @@ namespace bnetlauncher
         /// String that identifies the named mutex.
         /// </summary>
         private static string mutex_name = "Local\\madalien.com_bnetlauncher_";
-
-        /// <summary>
-        /// External gamedb Ini from which more games can be loaded.
-        /// If it doesn't exist a copy of the internal list will be placed there.
-        /// </summary>
-        private static string gamedb_file = Path.Combine(Shared.DataPath, "gamedb.ini");
     }
 }

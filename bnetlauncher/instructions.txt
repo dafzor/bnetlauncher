@@ -43,6 +43,11 @@ Optional: In case of problems logging can be enabled by creating a enablelog.txt
           "%localappdata%\madalien.com\bnetlauncher\", you can open the location by pasting the path
           into explorer or the run dialog in windows (WinKey+R)
 
+Adding more Games
+-----------------
+**todo**
+
+
 
 Known Issues
 -------------
@@ -86,7 +91,7 @@ Version History
 1.99 (beta)
 * Major reorganization of the code
 * Totally changed how games are launched and detected running
-- removed -i option, people launching custom games should instead edit gamedb.ini
+- removed -i option, people launching custom games should instead create a gamedb.ini
 + added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
 
 1.22
