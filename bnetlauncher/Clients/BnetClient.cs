@@ -120,8 +120,16 @@ namespace bnetlauncher.Clients
         public override bool Start()
         {
             // Just launches the client which is required for it to interpret launch commands properly.
-            var client = Process.Start(Path.Combine(InstallPath, Exe));
             Logger.Information($"Starting '{Id}' client.");
+            if (Tasks.Exists(Id))
+            {
+                Logger.Information("Found task for client.");
+                Tasks.Run(Id);
+            }
+            else
+            {
+                Process.Start(Path.Combine(InstallPath, Exe));
+            }            
 
             lockfile.Create();
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
