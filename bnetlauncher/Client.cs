@@ -85,13 +85,27 @@ namespace bnetlauncher
         public int GetProcessId()
         {
             // TODO: What would happen if there's two clients running? Should we even care?
+            // TODO: Now that helpers have the same exe name we can catch one by mistake...
             try
             {
-                using (var searcher = new ManagementObjectSearcher($"SELECT ProcessId FROM Win32_process WHERE Name = '{Exe}'"))
+                var current_user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+
+                using (var searcher = new ManagementObjectSearcher($"SELECT * FROM Win32_process WHERE Name = '{Exe}'"))
                 {
-                    foreach (var result in searcher.Get())
+                    // https://stackoverflow.com/questions/777548/how-do-i-determine-the-owner-of-a-process-in-c
+                    foreach (ManagementObject result in searcher.Get())
                     {
-                        return Convert.ToInt32(result["ProcessId"]);
+                        // Returns the client instance owned by the current user.
+                        // Trying to use a client running under a differnt user usually causes
+                        // a second client instance to start.
+                        var args = new string[] { string.Empty, string.Empty };
+                        if (0 == Convert.ToInt32(result.InvokeMethod("GetOwner", args)))
+                        {
+                            if ($"{args[1]}\\{args[0]}" == current_user)
+                            {
+                                return Convert.ToInt32(result["ProcessId"]);
+                            }
+                        }
                     }
                 }
             }

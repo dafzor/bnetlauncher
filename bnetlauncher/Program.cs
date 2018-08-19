@@ -269,6 +269,10 @@ namespace bnetlauncher
                         "Client not found");
                 }
             }
+            else
+            {
+                Logger.Information($"Client already running with pid:'{selected_client.GetProcessId()}'.");
+            }
 
             #region Launch Game
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
@@ -538,6 +542,10 @@ namespace bnetlauncher
                     {
                         Logger.Information($"Leaving client '{selected_client.Id}' open.");
                     }
+                }
+                else
+                {
+                    Logger.Information($"Didn't start the client, leaving it open.");
                 }
             }
             catch (Exception ex)

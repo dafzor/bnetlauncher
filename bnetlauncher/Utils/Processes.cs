@@ -7,6 +7,7 @@ using System.Threading;
 
 namespace bnetlauncher.Utils
 {
+    // TODO: Make sure i don't need to check for users on these too
     static class Processes
     {
         /// <summary>

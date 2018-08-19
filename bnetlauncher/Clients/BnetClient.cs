@@ -81,14 +81,14 @@ namespace bnetlauncher.Clients
                                 Logger.Error("Failed to retrieve path from battle.net uninstall entry");
                             }
 
-                            Logger.Information($"Found battle.net in '{bnet_path}'.");
+                            Logger.Information($"Client InstallPath:'{bnet_path}'.");
                             return bnet_path;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to retrieve the client path", ex);
+                    Logger.Error("Failed to retrieve client InstallPath.", ex);
                     return String.Empty;
                 }
             }
@@ -204,7 +204,7 @@ namespace bnetlauncher.Clients
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher(
-                        String.Format("SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {0} AND Name LIKE 'Battle.net.exe'", bnet_pid)))
+                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {bnet_pid} AND Name LIKE 'Battle.net.exe'"))
                     {
                         helper_count = searcher.Get().Count;
                     }
