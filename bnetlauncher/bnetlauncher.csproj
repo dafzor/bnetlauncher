@@ -43,6 +43,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>default</LangVersion>
     <OutputType>Exe</OutputType>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -89,6 +90,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Utils\Logger.cs" />
+    <Compile Include="Utils\Processes.cs" />
+    <Compile Include="Utils\Tasks.cs" />
+    <Compile Include="Utils\TrayArea.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="INIFileParser, Version=2.5.2.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">

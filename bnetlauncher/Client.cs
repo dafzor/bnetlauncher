@@ -118,7 +118,8 @@ namespace bnetlauncher
         /// </summary>
         public virtual void Close()
         {
-            Program.KillProcessAndChildren(GetProcessId());
+            Processes.KillProcessAndChildsById(GetProcessId());
+            TrayArea.Refresh();
             lockfile.Delete();
         }
 
@@ -132,6 +133,7 @@ namespace bnetlauncher
 
             // Waits until it goes idle
             var ret = client.WaitForInputIdle();
+            Logger.Information($"Client '{Id}' running with pid:'{GetProcessId()}'.");
 
             // create the started file that signals the client was started by us.
             lockfile.Create();

@@ -125,7 +125,7 @@ namespace bnetlauncher
             LogMachineInformation();
             #endregion
 
-            LoadGames();
+            LoadGameList();
 
             #region Argument Parsing
             // Parse the given arguments
@@ -281,15 +281,27 @@ namespace bnetlauncher
             // Searches for a game started trough the client for 15s
             Logger.Information($"Searching for the game process '{selected_game.Exe}' for '{param_timeout}' seconds.");
             int game_process_id = 0;
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
-                // This is one of the dirties hacks I've ever done, and for cod of all games... sigh  
-                game_process_id = GetProcessIdAfterDateByName(launch_request_date, selected_game.Exe);
+                game_process_id = Processes.GetProcessByNameAfterDate(selected_game.Exe, launch_request_date);
+                if (game_process_id == 0)
+                {
+                    // Avoids spamming log more then once a second
+                    if (stopwatch.Elapsed.TotalSeconds > 1)
+                    {
+                        Logger.Warning($"Game '{selected_game.Exe}' not running.");
+                        stopwatch.Restart();
+                    }
+                }
             }
+            stopwatch.Stop();
 
             if (game_process_id == 0)
             {
-                Logger.Error("No game process found, giving up.");
+                Logger.Error($"Game '{selected_game.Id}' not found within timeout.");
 
                 // Exit Application
                 ShowMessageAndExit("Couldn't find a game process.\n" +
@@ -300,7 +312,7 @@ namespace bnetlauncher
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
-            var process = new Process() { StartInfo = GetProcessStartInfoById(game_process_id) };
+            var process = new Process() { StartInfo = Processes.GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
             if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !selected_game.Options.Contains("noargs")))
@@ -317,7 +329,7 @@ namespace bnetlauncher
             try
             {
                 Logger.Information("Closing game process and starting it under bnetlauncher");
-                KillProcessAndChildren(game_process_id);
+                Processes.KillProcessAndChildsById(game_process_id);
                 process.Start();
             }
             catch (Exception ex)
@@ -434,7 +446,7 @@ namespace bnetlauncher
         /// Loads the games from a gamedb.ini file and internal settings.
         /// It will search for the files in bnetlauncher folder or it's appdata.
         /// </summary>
-        private static void LoadGames()
+        private static void LoadGameList()
         {
             // Name of external gamedb file
             string[] gamedb_files =
@@ -534,83 +546,7 @@ namespace bnetlauncher
                 Logger.Error($"Failed to close client.", ex);
             }
         }
-        /// <summary>
-        /// Returns the process id of the process with the given name that's closest to the date given.
-        /// </summary>
-        /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
-        /// <returns>Process Id of the process.</returns>
-        private static int GetProcessIdAfterDateByName(DateTime date, string name)
 
-        {
-            DateTime game_process_date = DateTime.Now;
-            int game_process_id = 0;
-
-            var wmiq = String.Format(
-                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
-                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), name);
-
-            using (var searcher = new ManagementObjectSearcher(wmiq))
-            {
-                foreach (var result in searcher.Get())
-                {
-                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
-                    var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
-
-                    Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff")}' with pid = {result_process_id}");
-
-                    // Closest to the given date is the one we return
-                    if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)
-                    {
-                        game_process_id = result_process_id;
-                        game_process_date = result_process_date;
-                    }
-                }
-            }
-            if (game_process_id == 0)
-            {
-                Logger.Warning("No game process found.");
-            }
-            else
-            {
-                Logger.Information($"Selecting game process started at '{game_process_date.ToString("hh:mm:ss.ffff")}' with pid = {game_process_id}");
-            }
-            return game_process_id;
-        }
-
-        /// <summary>
-        /// Kill a process tree recursively
-        /// </summary>
-        /// <param name="process_id">Process ID.</param>
-        public static void KillProcessAndChildren(int process_id)
-        {
-            if (process_id == 0)
-            {
-                Logger.Warning("Attempted to kill child proccess of 0.");
-                return;
-            }
-
-            using (var searcher = new ManagementObjectSearcher(
-                String.Format("SELECT * FROM Win32_Process WHERE ParentProcessId = {0}", process_id)))
-            {
-                foreach (var result in searcher.Get())
-                {
-                    KillProcessAndChildren(Convert.ToInt32(result["ProcessID"]));
-                }
-                try
-                {
-                    Process process = Process.GetProcessById(process_id);
-                    process.Kill();
-                }
-                catch (ArgumentException)
-                {
-                    // Process already exited.
-                }
-                catch (Exception ex)
-                {
-                    Logger.Information(ex.ToString());
-                }
-            }
-        }
 
         internal static FileVersionInfo VersionInfo
         {
@@ -631,70 +567,6 @@ namespace bnetlauncher
                 return Path.Combine(Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData), VersionInfo.CompanyName, VersionInfo.FileDescription);
             }
-        }
-
-        /// <summary>
-        /// Returns a filled ProcessStartInfo class with the arguments used to launch the process with the given id.
-        /// The function will try retry_count before giving up and throwing an exception. Each retry waits 100ms.
-        /// </summary>
-        /// <param name="process_id">Process Id of the process which arguments you want copied.</param>
-        /// <param name="retry_count">The number of times it will try to acquire the information before it fails.
-        /// Defaults to 50 tries.</param>
-        /// <returns>ProcessStartInfo with FileName and Arguments set to the same ones used in the given process
-        /// id.</returns>
-        private static ProcessStartInfo GetProcessStartInfoById(int process_id, int retry_count = 50)
-        {
-            var start_info = new ProcessStartInfo();
-
-            // IMPORTANT: If the game is slow to launch (computer just booted), it's possible that it will return a process ID but
-            //            then fail to retrieve the start_info, thus we do this retry cycle to make sure we actually get the
-            //            information we need.
-            int retry = 1;
-            bool done = false;
-            while (retry < retry_count && done != true)
-            {
-                Logger.Information($"Attempt {retry} to find start parameters");
-                try
-                {
-                    // IMPORTANT: We use System.Management API because Process.StartInfo is not populated if used on processes that we
-                    //            didn't start with the Start() method. See additional information in Process.StartInfo documentation.
-                    using (var searcher = new ManagementObjectSearcher("SELECT CommandLine, ExecutablePath FROM Win32_Process WHERE ProcessId = " +
-                        process_id))
-                    {
-                        foreach (var result in searcher.Get())
-                        {
-                            start_info.FileName = result["ExecutablePath"].ToString();
-
-                            // NOTICE: Working Directory needs to be the same as battle.net client uses else the games wont
-                            //         start properly.
-                            start_info.WorkingDirectory = Path.GetDirectoryName(result["ExecutablePath"].ToString());
-
-                            var command_line = result["CommandLine"].ToString();
-
-                            // We do this to remove the first wow exe from the arguments plus "" if present
-                            var cut_off = start_info.FileName.Length;
-                            if (command_line[0] == '"')
-                            {
-                                cut_off += 2;
-                            }
-                            start_info.Arguments = command_line.Substring(cut_off);
-                            done = true;
-                            break;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warning($"Failed attempt '{retry}'", ex);
-                }
-
-                retry += 1;
-                Thread.Sleep(100);
-            }
-
-            Logger.Information($"Filename:'{start_info.FileName}'.");
-            Logger.Information($"Arguments:'{start_info.Arguments}'.");
-            return start_info;
         }
 
         /// <summary>

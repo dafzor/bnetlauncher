@@ -35,15 +35,18 @@ namespace bnetlauncher.Clients
             client.WaitForInputIdle();
 
             // Close the launcher window
-            SendMessage(client.MainWindowHandle, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
             lockfile.Create();
             return true;
         }
 
-        public static uint WM_CLOSE = 0x10;
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
-
+        internal class NativeMethods
+        {
+            public static uint WM_CLOSE = 0x10;
+            [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = false)]
+            public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        }
+        
         private Process game;
     }
 }
