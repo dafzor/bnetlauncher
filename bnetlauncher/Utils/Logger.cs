@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 /// <summary>
 /// TODO:
 /// - support multiple programs writing to the file at the same time
-/// - make it so that blocked text file doesn't halt execution
+/// - make it so that blocked text file doesn't halt execution https://stackoverflow.com/questions/29962885/writing-to-a-file-asynchronously-but-in-order
 /// - add old log cleanup/trimming code
 /// - make code more robust?
 /// - something i'm probably forgeting
@@ -32,22 +32,21 @@ namespace bnetlauncher.Utils
         public static void Information(string message,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, null, src_path, src_member, src_line, "info");
+            Message(message, null, src_path, src_member, src_line, "INFO");
         }
 
         public static void Warning(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, ex, src_path, src_member, src_line, "warn");
+            Message(message, ex, src_path, src_member, src_line, "WARN");
 
         }
 
         public static void Error(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, ex, src_path, src_member, src_line, "error");
+            Message(message, ex, src_path, src_member, src_line, "ERROR");
         }
-
 
         private static void Message(string message, Exception ex, string src_path, string src_member,int src_line, string type = "inf")
         {
