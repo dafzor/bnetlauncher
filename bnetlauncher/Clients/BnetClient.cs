@@ -196,11 +196,12 @@ namespace bnetlauncher.Clients
         /// <returns>True if the client is fully started, false otherwise.</returns>
         private bool WaitUntilReady(int timeout = 120)
         {
+            Logger.Information("Waiting for battle.net client to be ready.");
+
             int helper_required = GetHelperProcessCount();
             int helper_count = 0;
 
-            int bnet_pid = GetProcessId();
-            if (bnet_pid == 0)
+            if (GetProcessId() == 0)
             {
                 Logger.Warning("Tried to WaitUntilReady with no battle.net client running.");
                 return false;
@@ -212,7 +213,7 @@ namespace bnetlauncher.Clients
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher(
-                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {bnet_pid} AND Name LIKE 'Battle.net.exe'"))
+                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'Battle.net.exe'"))
                     {
                         helper_count = searcher.Get().Count;
                     }
@@ -233,7 +234,7 @@ namespace bnetlauncher.Clients
             }
 
             // battle.net should be fully running
-            Logger.Information($"Client fully running with pid:'{bnet_pid}'");
+            Logger.Information($"Client fully running with pid:'{GetProcessId()}'");
             return true;
         }
     }
