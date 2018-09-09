@@ -212,6 +212,7 @@ namespace bnetlauncher.Clients
             {
                 try
                 {
+                    // Always look for the pid again because client updates or prompts might make it relaunch
                     using (var searcher = new ManagementObjectSearcher(
                         $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'Battle.net.exe'"))
                     {

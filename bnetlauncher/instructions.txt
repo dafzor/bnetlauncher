@@ -93,6 +93,7 @@ Version History
 * Totally changed how games are launched and detected running
 - removed -i option, people launching custom games should instead create a gamedb.ini
 + added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
++ clients are now started using scheduled tasks so steam overlay wont affect them
 
 1.22
 * Updated for changes in new Battle.net client beta.

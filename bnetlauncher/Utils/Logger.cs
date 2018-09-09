@@ -50,15 +50,9 @@ namespace bnetlauncher.Utils
 
         private static void Message(string message, Exception ex, string src_path, string src_member,int src_line, string type = "inf")
         {
-            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|{GetSrcFile(src_path)}.{src_member}:{src_line}|{type}|{message}";
-
             if (OutputToFile)
             {
-                WriteLog(line);
-                if (ex != null)
-                {
-                    WriteLog(ex.ToString());
-                }
+                FileWrite(message, ex, src_path, src_member, src_line, type);
             }
             if (OutPutToConsole)
             {
@@ -66,10 +60,17 @@ namespace bnetlauncher.Utils
             }
         }
 
-        private static void WriteLog(string line)
+        private static void FileWrite(string message, Exception ex, string src_path, string src_member, int src_line, string type)
         {
-            StreamWriter file = new StreamWriter(log_file, true);
+            var file = new StreamWriter(log_file, true);
+            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|{GetSrcFile(src_path)}.{src_member}:{src_line}|{type}|{message}";
+
             file.WriteLine(line);
+            if (ex != null)
+            {
+                file.WriteLine(ex.ToString());
+            }
+
             file.Close();
         }
 
