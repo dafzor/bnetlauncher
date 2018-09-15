@@ -6,6 +6,7 @@ namespace bnetlauncher.Utils
     /// <summary>
     /// Class copied from:
     /// https://maruf-dotnetdeveloper.blogspot.com/2012/08/c-refreshing-system-tray-icon.html
+    /// All rights bellong to original author
     /// </summary>
     public static class TrayArea
     {
@@ -54,8 +55,7 @@ namespace bnetlauncher.Utils
         private static void RefreshTrayArea(IntPtr windowHandle)
         {
             const UInt32 wmMousemove = 0x0200;
-            NativeMethods.Rect lpRect;
-            NativeMethods.GetClientRect(windowHandle, out lpRect);
+            NativeMethods.GetClientRect(windowHandle, out NativeMethods.Rect lpRect);
             for (var x = 0; x < lpRect.right; x += 5)
                 for (var y = 0; y < lpRect.bottom; y += 5)
                     NativeMethods.SendMessage(windowHandle, wmMousemove, IntPtr.Zero, (IntPtr)(y << 16) + x);

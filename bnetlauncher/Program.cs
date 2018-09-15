@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2016-2017 madalien.com
+﻿// Copyright (C) 2016-2018 madalien.com
 // This file is part of bnetlauncher.
 //
 // bnetlauncher is free software: you can redistribute it and/or modify
@@ -17,7 +17,8 @@
 //
 // Contact:
 // daf <daf@madalien.com>
-//
+
+
 // References:
 // https://www.reddit.com/r/Overwatch/comments/3tfrv5/guide_how_to_use_steam_overlay_with_the_blizzard/
 // http://www.swtor.com/community/showthread.php?t=94152
