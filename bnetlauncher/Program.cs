@@ -122,8 +122,8 @@ namespace bnetlauncher
                     "WMI service not running");
             }
 
-            // Logs generic Machine information for debugging purposes. 
-            LogMachineInformation();
+            // Logs generic System information for debugging purposes. 
+            LogSystemInfo();
             #endregion
 
             LoadGameList();
@@ -579,9 +579,9 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Struct to temporarily store Machine information retrieved by LogMachineInformation
+        /// Struct to temporarily store System information retrieved by LogSystemInfo
         /// </summary>
-        private struct MachineInfo
+        private struct SystemInfo
         {
             public string os_name;
             public string os_bits;
@@ -596,19 +596,18 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// Writes basic Machine information in the log for debugging purpose.
+        /// Writes basic System information in the log for debugging purpose.
         /// </summary>
-        private static void LogMachineInformation()
+        private static void LogSystemInfo()
         {
+            Logger.Information("Getting System details:");
+
             // This information can't be fully trusted since Windows will lie about it's version if we don't include
             // explicit support in the app.manifest. 
-            Logger.Information(String.Format("Environment: {0} ({1}), {2}", Environment.OSVersion, Environment.Version,
-                (Environment.Is64BitProcess ? "64bit" : "32bit")));
+            Logger.Information($"ENV: {Environment.OSVersion} ({Environment.Version}), {(Environment.Is64BitProcess ? "64" : "32")}bit");
 
 
-            Logger.Information("Getting Machine details:");
-            var machine_info = new MachineInfo();
-
+            var sysinfo = new SystemInfo();
             try
             {
                 // Operating System
@@ -616,10 +615,10 @@ namespace bnetlauncher
                 {
                     foreach (var result in searcher.Get())
                     {
-                        machine_info.os_name = result["Caption"].ToString();
-                        machine_info.os_version = result["Version"].ToString();
-                        machine_info.os_bits = result["OSArchitecture"].ToString();
-                        machine_info.os_locale = result["OSLanguage"].ToString();
+                        sysinfo.os_name = result["Caption"].ToString();
+                        sysinfo.os_version = result["Version"].ToString();
+                        sysinfo.os_bits = result["OSArchitecture"].ToString();
+                        sysinfo.os_locale = result["OSLanguage"].ToString();
                     }
                 }
 
@@ -628,7 +627,7 @@ namespace bnetlauncher
                 {
                     foreach (var result in searcher.Get())
                     {
-                        machine_info.cpu_name = result["Name"].ToString();
+                        sysinfo.cpu_name = result["Name"].ToString();
                     }
                 }
 
@@ -640,7 +639,7 @@ namespace bnetlauncher
                     {
                         capacity += Convert.ToInt64(result["Capacity"]);
                     }
-                    machine_info.ram_capacity = (capacity / Math.Pow(1024, 2)).ToString() + "MB";
+                    sysinfo.ram_capacity = (capacity / Math.Pow(1024, 2)).ToString() + "MB";
                 }
 
                 // HDD
@@ -648,10 +647,10 @@ namespace bnetlauncher
                 {
                     foreach (var result in searcher.Get())
                     {
-                        machine_info.hdd_name += result["Model"].ToString() + ", ";
+                        sysinfo.hdd_name += result["Model"].ToString() + ", ";
                     }
 
-                    machine_info.hdd_name = machine_info.hdd_name.Substring(0, machine_info.hdd_name.Length - 2);
+                    sysinfo.hdd_name = sysinfo.hdd_name.Substring(0, sysinfo.hdd_name.Length - 2);
                 }
 
                 // GPU
@@ -659,23 +658,22 @@ namespace bnetlauncher
                 {
                     foreach (var result in searcher.Get())
                     {
-                        machine_info.gpu_name = result["Caption"].ToString();
+                        sysinfo.gpu_name = result["Caption"].ToString();
                         // Video RAM is given in bytes so we convert it to MB
-                        machine_info.gpu_ram = (Convert.ToInt64(result["AdapterRAM"]) / Math.Pow(1024, 2)).ToString() + "MB";
-                        machine_info.gpu_driver = result["DriverVersion"].ToString();
+                        sysinfo.gpu_ram = (Convert.ToInt64(result["AdapterRAM"]) / Math.Pow(1024, 2)).ToString() + "MB";
+                        sysinfo.gpu_driver = result["DriverVersion"].ToString();
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Information(String.Format("Error Getting Machine information. {0}", ex.ToString()));
+                Logger.Error("Error Getting System information.", ex);
             }
 
-            Logger.Information(String.Format("OS: {0} ({1}, {2}, {3})", machine_info.os_name, machine_info.os_version,
-                machine_info.os_bits, machine_info.os_locale));
-            Logger.Information(String.Format("CPU: {0}, RAM: {1}", machine_info.cpu_name, machine_info.ram_capacity));
-            Logger.Information(String.Format("GPU: {0} ({2}, {1})", machine_info.gpu_name, machine_info.gpu_driver, machine_info.gpu_ram));
-            Logger.Information(String.Format("HDD: {0}", machine_info.hdd_name));
+            Logger.Information($"OS: {sysinfo.os_name} ({sysinfo.os_version}, {sysinfo.os_bits}, {sysinfo.os_locale})");
+            Logger.Information($"CPU: {sysinfo.cpu_name}, RAM: {sysinfo.ram_capacity}");
+            Logger.Information($"GPU: {sysinfo.gpu_name} ({sysinfo.gpu_driver}, {sysinfo.gpu_ram})");
+            Logger.Information($"HDD: {sysinfo.hdd_name}");
         }
 
         /// <summary>
