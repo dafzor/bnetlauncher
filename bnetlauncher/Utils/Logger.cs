@@ -22,7 +22,7 @@ namespace bnetlauncher.Utils
         public static bool OutPutToConsole { get; set; }
 
         /// <summary>
-        /// Read only structure contained all the information for a single log entry
+        /// Readonly structure contained all the information for a single log entry
         /// </summary>
         private struct LogEntry
         {
@@ -45,15 +45,23 @@ namespace bnetlauncher.Utils
         }
 
         /// <summary>
-        /// 
+        /// File in which the log file will be writen, one per day
         /// </summary>
         private static readonly string log_file = Path.Combine(Program.DataPath, $"debug_{Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd")}.log");
 
         /// <summary>
-        /// Log Entry queues
+        /// Log Entry colection that serves as a queue for the log worker.
         /// </summary>
         private static BlockingCollection<LogEntry> log_queue = new BlockingCollection<LogEntry>();
 
+        /// <summary>
+        /// Log worker thread global needed to wait for it to flush.
+        /// </summary>
+        private static Thread logger_worker;
+
+        /// <summary>
+        /// Checks which logs are enabled and starts the worker thread and hooks up the flush on exit.
+        /// </summary>
         static Logger()
         {
             OutPutToConsole = Environment.UserInteractive;
@@ -61,31 +69,63 @@ namespace bnetlauncher.Utils
                 File.Exists(Path.Combine(Program.DataPath, "enablelog.txt")) ||
                 File.Exists(Path.Combine(Program.DataPath, "enablelog.txt.txt"));
 
-            // creates the worker thread as background so it exits when main program finishes
-            var logger_worker = new Thread(LoggerWorker);
+            // creates the worker thread as background so it doesn't keep the client open
+            // when main thread exits.
+            logger_worker = new Thread(LoggerWorker);
             logger_worker.IsBackground = true;
             logger_worker.Start();
+
+            // Hooks into the process exit so we can flush the log_queue
+            // using a lambda operator to discard the parameters that aren't needed.
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) => FlushQueue();
         }
 
+        /// <summary>
+        /// Flushes the log entry queue by marking it as complete and waiting for all messages to be processed.
+        /// This is automaticly called on ProcessExit.
+        /// </summary>
+        public static void FlushQueue()
+        {
+            log_queue.CompleteAdding();
+            logger_worker.Join();
+        }
+
+        /// <summary>
+        /// Writes an Information message to the log
+        /// </summary>
+        /// <param name="message">Message to write</param>
         public static void Information(string message,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
             log_queue.Add(new LogEntry(message, null, src_path, src_member, src_line, "INFO"));
         }
 
+        /// <summary>
+        /// Writes an Warning message to the log
+        /// </summary>
+        /// <param name="message">Message to write</param>
+        /// <param name="ex">Optional Exception object to show after the log message</param>
         public static void Warning(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
             log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "WARN"));
-
         }
 
+        /// <summary>
+        /// Writes an Error message to the log
+        /// </summary>
+        /// <param name="message">Message to write</param>
+        /// <param name="ex">Optional Exception object to show after the log message</param>
         public static void Error(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
             log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "ERROR"));
         }
 
+
+        /// <summary>
+        /// Working thread that consumes the log entry queue
+        /// </summary>
         private static void LoggerWorker()
         {
             while (!log_queue.IsCompleted)
@@ -98,6 +138,7 @@ namespace bnetlauncher.Utils
 
                     if (OutPutToConsole)
                     {
+                        // writes console message first because less likely to be delayed.
                         ConsoleWrite(msg);
                     }
                     if (OutputToFile)
@@ -109,11 +150,17 @@ namespace bnetlauncher.Utils
             }
         }
 
+        /// <summary>
+        /// Write a LogEntry to a log file.
+        /// If the file is locked by another process it will keep retrying until successful write.
+        /// </summary>
+        /// <param name="le">LogEntry to write.</param>
         private static void FileWrite(LogEntry le)
         {
-            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|{GetSrcFile(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}|{le.message}";
+            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|" +
+                $"{Path.GetFileNameWithoutExtension(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}|{le.message}";
 
-            while (true)
+            while (true) // endless retry loop
             {
                 try
                 {
@@ -127,11 +174,15 @@ namespace bnetlauncher.Utils
                     }
                     return; // if we reach here we're done
                 }
-                // failed to get the file so try again
+                // failed to get access to the file so try again
                 catch (IOException) { }
             }
         }
 
+        /// <summary>
+        /// Writes LogEntry in the console using colors
+        /// </summary>
+        /// <param name="le">LogEntry to write.</param>
         private static void ConsoleWrite(LogEntry le)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -157,7 +208,7 @@ namespace bnetlauncher.Utils
                     break;
             }
 
-            Console.Write($"{GetSrcFile(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}");
+            Console.Write($"{Path.GetFileNameWithoutExtension(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}");
 
             Console.ResetColor(); Console.Write("|");
 
@@ -171,11 +222,6 @@ namespace bnetlauncher.Utils
             }
 
             Console.ResetColor();
-        }
-
-        private static string GetSrcFile(string path)
-        {
-            return Path.GetFileNameWithoutExtension(path);
         }
     }
 }
