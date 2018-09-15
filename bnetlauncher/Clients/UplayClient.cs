@@ -22,6 +22,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
+using bnetlauncher.Utils;
+using System.Threading;
 
 namespace bnetlauncher.Clients
 {
@@ -51,13 +53,29 @@ namespace bnetlauncher.Clients
 
         public override bool Start()
         {
-            var client = Process.Start(Path.Combine(InstallPath, Exe));
-            client.WaitForInputIdle();
+            if (Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
+            {
+                // wait for the process to start
+                while (Process.GetProcessesByName(Exe).Length <= 0)
+                {
+                    Debugger.Launch();
+                    Logger.Information($"{Id} client process not found, waiting.");
+                    Thread.Sleep(10);
+                }
+                
+                // then wait for it to fully load
+                var client = Process.GetProcessesByName(Exe)[0];
+                Logger.Information($"Found {Id} process waiting for window to go idle.");
+                client.WaitForInputIdle();
 
-            // Close the launcher window
-            NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-            lockfile.Create();
-            return true;
+                // Close the launcher window
+                Logger.Information($"Sending {Id} window a close message.");
+                NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                lockfile.Create();
+                return true;
+            }
+            Logger.Error("Failed to start client.");
+            return false;
         }
 
         internal class NativeMethods
