@@ -137,7 +137,7 @@ namespace bnetlauncher.Utils
             int game_process_id = 0;
 
             var wmiq = String.Format(
-                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}'",
+                "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}%'",
                 ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), name);
 
             using (var searcher = new ManagementObjectSearcher(wmiq))

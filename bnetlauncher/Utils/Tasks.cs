@@ -89,6 +89,7 @@ namespace bnetlauncher.Utils
             {
                 if (task.Name == name)
                 {
+                    Logger.Information($"Starting {name} task.");
                     task.Run();
                     return;
                 }

@@ -24,6 +24,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using bnetlauncher.Utils;
 using System.Threading;
+using System.Management;
 
 namespace bnetlauncher.Clients
 {
@@ -47,7 +48,13 @@ namespace bnetlauncher.Clients
 
         public override bool Launch(string cmd)
         {
-            game = Process.Start(cmd);
+            Process game = new Process();
+
+            Logger.Information(Path.GetDirectoryName(cmd));
+            game.StartInfo.WorkingDirectory = Path.GetDirectoryName(cmd);
+            game.StartInfo.FileName = cmd;
+
+            game.Start();
             return true;
         }
 
@@ -55,22 +62,21 @@ namespace bnetlauncher.Clients
         {
             if (Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
             {
-                // wait for the process to start
-                while (Process.GetProcessesByName(Exe).Length <= 0)
+                var name = Path.GetFileNameWithoutExtension(Exe);
+
+                while (GetProcessId() == 0)
                 {
-                    Debugger.Launch();
-                    Logger.Information($"{Id} client process not found, waiting.");
-                    Thread.Sleep(10);
+                    Logger.Information($"Waiting for {Id} client to start.");
+                    Thread.Sleep(100);
                 }
                 
                 // then wait for it to fully load
-                var client = Process.GetProcessesByName(Exe)[0];
-                Logger.Information($"Found {Id} process waiting for window to go idle.");
-                client.WaitForInputIdle();
+                //var client = Process.GetProcessesByName(name)[0];
+                //client.WaitForInputIdle();
 
                 // Close the launcher window
-                Logger.Information($"Sending {Id} window a close message.");
-                NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                //Logger.Information($"Sending {Id} window a close message.");
+                //NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                 lockfile.Create();
                 return true;
             }

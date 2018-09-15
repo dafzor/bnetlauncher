@@ -87,6 +87,8 @@ namespace bnetlauncher
         /// </summary>
         static int param_timeout = 15;
 
+        static Stopwatch stopwatch = new Stopwatch();
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -259,7 +261,7 @@ namespace bnetlauncher
             }
             #endregion
 
-            // Make sure battle.net client is running
+            // Make sure the client is running
             if (!selected_client.IsRunning)
             {
                 // Start the client
@@ -286,8 +288,7 @@ namespace bnetlauncher
             // Searches for a game started trough the client for 15s
             Logger.Information($"Searching for the game process '{selected_game.Exe}' for '{param_timeout}' seconds.");
             int game_process_id = 0;
-            var stopwatch = new System.Diagnostics.Stopwatch();
-            stopwatch.Start();
+            stopwatch.Restart();
 
             while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
             {
@@ -345,6 +346,42 @@ namespace bnetlauncher
             }
             #endregion // Launch game
 
+            // HACK: Add checks for uplay games that close and relaunch themselfs
+            if (selected_game.Options.Contains("relaunches"))
+            {
+                var relaunches_timeout = 60 * 1000;
+                Logger.Information("relaunches option is set, looking for new processes.");
+
+                // the old process Id
+                var old_pid = process.Id;
+
+                Logger.Information($"{selected_game.Id} current process id is {old_pid}");
+
+                stopwatch.Restart();                
+                while (stopwatch.ElapsedMilliseconds < relaunches_timeout)
+                {
+                    foreach (var p in Process.GetProcessesByName(selected_game.Exe))
+                    {
+                        if (p.Id != old_pid)
+                        {
+                            process = p;
+                            Logger.Information($"{selected_game.Id} new process id is {process.Id}");
+                            old_pid = process.Id;
+                        }
+                    }
+                    
+                    Thread.Sleep(1000); // wait for 1s before retrying to find it
+                }
+                stopwatch.Stop();
+
+                if (stopwatch.ElapsedMilliseconds < relaunches_timeout)
+                {
+                    Logger.Warning($"Couldn't find any new process for {selected_game.Id}");
+                }
+
+                Logger.Information($"Stopped looking for {selected_game.Id} processes.");
+            }
+
             // Release the mutex to allow another instance of bnetlauncher to grab it and do work
             launcher_mutex.ReleaseMutex();
 
@@ -357,7 +394,7 @@ namespace bnetlauncher
             // For games that require the client or bnetlauncher to stick around we wait
             if (selected_game.Options.Contains("waitforexit") || selected_client.MustBeRunning)
             {
-                Logger.Information("Waiting for game to exit");
+                Logger.Information($"Waiting for {selected_game.Id} process {process.Id} to exit");
                 process.WaitForExit();
 
                 //// Get the process again because sometimes what we start isn't what's still running
