@@ -19,6 +19,8 @@
 // daf <daf@madalien.com>
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using Microsoft.Win32.TaskScheduler;
 
 namespace bnetlauncher.Utils
@@ -37,36 +39,110 @@ namespace bnetlauncher.Utils
     /// </summary>
     public static class Tasks
     {
-        private static TaskService tservice;
+        private static TaskService service;
+        private static TaskFolder folder;
+
+        private static FileVersionInfo VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
 
         static Tasks()
         {
-            tservice = new TaskService();
+            service = new TaskService();
+
+            // make sure the folder exists and creates it if it doesn't
+            if (null == (folder = service.GetFolder(VersionInfo.FileDescription)))
+            {
+                service.RootFolder.CreateFolder(VersionInfo.FileDescription);
+                folder = service.GetFolder(VersionInfo.FileDescription);
+            }
         }
 
-        public static void Create(string name, string exe)
+        public static Task Create(string name, string cmd)
         {
-            //var ti = tservice.AddTask($"bnetlauncher\\{name}", Trigger.CreateTrigger(TaskTriggerType., $"\"{exe}\"");
-            //create task with no trigger
+            TaskDefinition td = service.NewTask();
+
+            td.Principal.LogonType = TaskLogonType.InteractiveToken;
+            td.RegistrationInfo.Description = $"{VersionInfo.FileMajorPart}.{VersionInfo.FileMinorPart}";
+
+            td.Settings.AllowDemandStart = true;
+            td.Settings.IdleSettings.StopOnIdleEnd = false;
+            td.Settings.DisallowStartIfOnBatteries = false;
+            td.Settings.StopIfGoingOnBatteries = false;
+
+            td.Actions.Add(new ExecAction(cmd));
+
+            Logger.Information($"Creating task for {name}.");
+            return folder.RegisterTaskDefinition(name, td);
+
         }
 
         public static void Delete(string name)
         {
-            //tservice.RootFolder.DeleteTask(name);
+            folder.DeleteTask(name);
         }
 
         public static void Run(string name)
         {
-            tservice.FindTask(name).Run();
+            // Is this really necessary?
+            var tasks = folder.Tasks;
+
+            foreach (var task in tasks)
+            {
+                if (task.Name == name)
+                {
+                    task.Run();
+                    return;
+                }
+            }
         }
 
         public static bool Exists(string name)
         {
-            if (tservice.FindTask(name) != null)
+            var tasks = folder.Tasks;
+
+            foreach (var task in tasks)
             {
-                return true;
+                if (task.Name == name)
+                {
+                    try
+                    {
+                        var current_version = new Version($"{VersionInfo.FileMajorPart}.{VersionInfo.FileMinorPart}");
+                        var task_version = new Version(task.Definition.RegistrationInfo.Description);
+
+                        if (task_version < current_version)
+                        {
+                            // the task version is newer or the same as the one we have
+                            Logger.Information($"Found outdated task for {name} v{task_version}, current is v{current_version}");
+                            return false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Error comparing task versions", ex);
+                    }
+
+                    // doesn't exist or older version
+                    Logger.Information($"Found task for {name}.");
+                    return true;
+                }
             }
+            // didn't find a matching task
+            Logger.Information($"No task for {name}.");
             return false;
+        }
+
+        public static bool CreateAndRun(string name, string cmd)
+        {
+            if (!Exists(name))
+            {
+                if (null == Create(name, cmd))
+                {
+                    Logger.Warning($"Failed to create task for {name}.");
+                    return false;
+                }
+            }
+
+            Run(name);
+            return true;
         }
     }
 }

@@ -121,13 +121,10 @@ namespace bnetlauncher.Clients
         {
             // Just launches the client which is required for it to interpret launch commands properly.
             Logger.Information($"Starting '{Id}' client.");
-            if (Tasks.Exists(Id))
+
+            if (!Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
             {
-                Logger.Information("Found task for client.");
-                Tasks.Run(Id);
-            }
-            else
-            {
+                Logger.Warning("Failed to start client trough task.");
                 Process.Start(Path.Combine(InstallPath, Exe));
             }            
 

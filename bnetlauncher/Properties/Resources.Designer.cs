@@ -71,7 +71,7 @@ namespace bnetlauncher.Properties {
         ///name=Diablo 3
         ///client=battlenet
         ///cmd=D3
-        ///exe=Diablo III64.exe
+        ///exe=Diablo III%.exe
         ///
         ///[hs]
         ///name=Hearthstone
@@ -95,13 +95,13 @@ namespace bnetlauncher.Properties {
         ///name=Starcraft 2
         ///client=battlenet
         ///cmd=S2
-        ///exe=SC2Switcher_x64.exe
+        ///exe=SC2Switcher%.exe
         ///
         ///[hots]
         ///name=Heroes of the Storm
         ///client=battlenet
         ///cmd=Hero
-        ///ex [rest of string was truncated]&quot;;.
+        ///exe=He [rest of string was truncated]&quot;;.
         /// </summary>
         public static string gamesdb {
             get {
