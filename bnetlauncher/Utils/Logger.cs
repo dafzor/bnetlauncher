@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 /// <summary>
 /// TODO:
@@ -19,7 +21,38 @@ namespace bnetlauncher.Utils
         public static bool OutputToFile { get; set; }
         public static bool OutPutToConsole { get; set; }
 
+        /// <summary>
+        /// Read only structure contained all the information for a single log entry
+        /// </summary>
+        private struct LogEntry
+        {
+            public readonly string message;
+            public readonly Exception ex;
+            public readonly string src_path;
+            public readonly string src_member;
+            public readonly int src_line;
+            public readonly string type;
+
+            public LogEntry(string message, Exception ex, string src_path, string src_member, int src_line, string type = "inf")
+            {
+                this.message = message;
+                this.ex = ex;
+                this.src_path = src_path;
+                this.src_member = src_member;
+                this.src_line = src_line;
+                this.type = type;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private static readonly string log_file = Path.Combine(Program.DataPath, $"debug_{Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd")}.log");
+
+        /// <summary>
+        /// Log Entry queues
+        /// </summary>
+        private static BlockingCollection<LogEntry> log_queue = new BlockingCollection<LogEntry>();
 
         static Logger()
         {
@@ -27,54 +60,79 @@ namespace bnetlauncher.Utils
             OutputToFile = File.Exists(Path.Combine(Program.DataPath, "enablelog")) ||
                 File.Exists(Path.Combine(Program.DataPath, "enablelog.txt")) ||
                 File.Exists(Path.Combine(Program.DataPath, "enablelog.txt.txt"));
+
+            // creates the worker thread as background so it exits when main program finishes
+            var logger_worker = new Thread(LoggerWorker);
+            logger_worker.IsBackground = true;
+            logger_worker.Start();
         }
 
         public static void Information(string message,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, null, src_path, src_member, src_line, "INFO");
+            log_queue.Add(new LogEntry(message, null, src_path, src_member, src_line, "INFO"));
         }
 
         public static void Warning(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, ex, src_path, src_member, src_line, "WARN");
+            log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "WARN"));
 
         }
 
         public static void Error(string message, Exception ex = null,
             [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
         {
-            Message(message, ex, src_path, src_member, src_line, "ERROR");
+            log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "ERROR"));
         }
 
-        private static void Message(string message, Exception ex, string src_path, string src_member,int src_line, string type = "inf")
+        private static void LoggerWorker()
         {
-            if (OutputToFile)
+            while (!log_queue.IsCompleted)
             {
-                FileWrite(message, ex, src_path, src_member, src_line, type);
-            }
-            if (OutPutToConsole)
-            {
-                ConsoleWrite(message, ex, src_path, src_member, src_line, type);
+                try
+                {
+                    // Tries to take another message from the queue
+                    // and blocks if the queue is empty.
+                    var msg = log_queue.Take();
+
+                    if (OutPutToConsole)
+                    {
+                        ConsoleWrite(msg);
+                    }
+                    if (OutputToFile)
+                    {
+                        FileWrite(msg);
+                    }
+                }
+                catch (InvalidOperationException) { }
             }
         }
 
-        private static void FileWrite(string message, Exception ex, string src_path, string src_member, int src_line, string type)
+        private static void FileWrite(LogEntry le)
         {
-            var file = new StreamWriter(log_file, true);
-            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|{GetSrcFile(src_path)}.{src_member}:{src_line}|{type}|{message}";
+            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|{GetSrcFile(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}|{le.message}";
 
-            file.WriteLine(line);
-            if (ex != null)
+            while (true)
             {
-                file.WriteLine(ex.ToString());
+                try
+                {
+                    using (var file = new StreamWriter(log_file, true))
+                    {
+                        file.WriteLine(line);
+                        if (le.ex != null)
+                        {
+                            file.WriteLine(le.ex.ToString());
+                        }
+                    }
+                    return; // if we reach here we're done
+                }
+                // failed to get the file so try again
+                catch (IOException) { }
             }
-
-            file.Close();
         }
 
-        private static void ConsoleWrite(string message, Exception ex, string src_path, string src_member, int src_line, string type)
+        private static void ConsoleWrite(LogEntry le)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(DateTime.Now.ToString("HH:mm:ss.ffff"));
@@ -86,7 +144,7 @@ namespace bnetlauncher.Utils
 
             Console.ResetColor(); Console.Write("|");
 
-            switch (type)
+            switch (le.type)
             {
                 case "error":
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -99,17 +157,17 @@ namespace bnetlauncher.Utils
                     break;
             }
 
-            Console.Write($"{GetSrcFile(src_path)}.{src_member}:{src_line}|{type}");
+            Console.Write($"{GetSrcFile(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}");
 
             Console.ResetColor(); Console.Write("|");
 
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(message);
+            Console.WriteLine(le.message);
 
-            if (ex != null)
+            if (le.ex != null)
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(le.ex.ToString());
             }
 
             Console.ResetColor();
