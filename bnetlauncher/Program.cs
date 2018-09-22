@@ -281,9 +281,19 @@ namespace bnetlauncher
             // Fire up game trough battle.net using the built in URI handler, we take the date to make sure we
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
-            Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
 
-            selected_client.Launch(selected_game.Cmd);
+
+            // If nolaunch is selected don't actually launch the game but instead wait 3s
+            if (!selected_game.Options.Contains("nolaunch"))
+            {
+                Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
+                selected_client.Launch(selected_game.Cmd);
+            }
+            else
+            {
+                selected_client.ShowWindow();
+                Thread.Sleep(3000);
+            }
 
             // Searches for a game started trough the client for 15s
             Logger.Information($"Searching for the game process '{selected_game.Exe}' for '{param_timeout}' seconds.");

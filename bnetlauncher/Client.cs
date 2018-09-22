@@ -202,6 +202,23 @@ namespace bnetlauncher
         }
 
         /// <summary>
+        /// Shows the main window of the Launcher
+        /// </summary>
+        public virtual void ShowWindow()
+        {
+            var client_pid = GetProcessId();
+
+            if (client_pid == 0)
+            {
+                Logger.Warning($"Attempted to open {Id} Window without it running.");
+                return;
+            }
+
+            Logger.Information($"Openting {Id} Window and waiting 3 seconds.");
+            Process.Start(Path.Combine(InstallPath, Exe));
+        }
+
+        /// <summary>
         /// Nested class that's used to keep track if bnetlauncher started the client
         /// </summary>
         protected class LockFile

@@ -137,7 +137,7 @@
     <PostBuildEvent>copy $(TargetDir)ILMerge\$(TargetFileName) g:\steam\
 
 del $(ProjectName)_vNext.zip
-7z a -tzip $(ProjectName)_vLatest.zip $(TargetDir)ILMerge\$(TargetFileName) $(ProjectDir)license.txt $(ProjectDir)instructions.txt</PostBuildEvent>
+7z a -tzip $(ProjectName)_vNext.zip $(TargetDir)ILMerge\$(TargetFileName) $(ProjectDir)license.txt $(ProjectDir)instructions.txt</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\ILMerge.MSBuild.Task.1.0.3\build\ILMerge.MSBuild.Task.targets" Condition="Exists('..\packages\ILMerge.MSBuild.Task.1.0.3\build\ILMerge.MSBuild.Task.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -111,9 +111,9 @@ namespace bnetlauncher.Utils
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Logger.Warning($"Failed attempt '{retry}'", ex);
+                    Logger.Warning($"Failed attempt '{retry}'");
                 }
 
                 retry += 1;
