@@ -88,12 +88,18 @@ github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support 
 
 Version History
 ---------------
+
+2.00 (early release)
+* Early release to replace v1.22 which has some current bugs
++ added -k option to leave client open if bnetlauncher started it
+
 1.99 (beta)
 * Major reorganization of the code
 * Totally changed how games are launched and detected running
 - removed -i option, people launching custom games should instead create a gamedb.ini
 + added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
 + clients are now started using scheduled tasks so steam overlay wont affect them
++ new logger system with console view for debug builds
 
 1.22
 * Updated for changes in new Battle.net client beta.

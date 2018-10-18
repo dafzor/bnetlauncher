@@ -36,13 +36,16 @@
 // someone asks for it later.
 // https://stackoverflow.com/questions/7394806/creating-scheduled-tasks
 //
-// Ideas that might or may not be implemented
-// ==========================================
-// * add code to repair battlenet URI association (fix some people having it broken)
-// * start battle.net client trough task scheduler (so overlay doesn't get attached to the launcher)
+// Ideas and future todo list t be implemented
+// ===========================================
 // * implement a reusable Form to replace MessageBox (easier to copy text, additional functionality, etc) 
 // * logger viewer on error and send report to author button (streamline issue reporting)
 // * clean up for internationalization (translations)
+// * proper command option parser
+// * better code to handle multiple game options
+// * even more refactoring to enable possible support for other clients like:
+//     - move game launch into Client class since it's client specific
+//     - move mutex code into Client class?
 
 
 using System;
@@ -67,7 +70,9 @@ namespace bnetlauncher
         static List<Client> clients = new List<Client>
         {
             new Clients.BnetClient(),
-            new Clients.UplayClient()
+
+            // DISABLED: WIP not good enough to work let alone release
+            //new Clients.UplayClient()
         };
 
         /// <summary>
@@ -86,6 +91,12 @@ namespace bnetlauncher
         /// Can be overiden with command line parameter -t ##
         /// </summary>
         static int param_timeout = 15;
+
+
+        /// <summary>
+        /// Flag to leave the client open if we launch it.
+        /// </summary>
+        static bool param_leaveopen = false;
 
         static Stopwatch stopwatch = new Stopwatch();
 
@@ -150,20 +161,46 @@ namespace bnetlauncher
             }
 
             // Check if the param_timeout is passed as a second parameter
-            if (args.Length > 2)
+            for (var i = 1; i < args.Length; i++)
             {
-                var option = args[1].ToLower().Trim();
-                if (option == "-t" || option == "/t")
+                var arg = args[i].ToLower().Trim();
+
+                // parse options
+                if (arg.StartsWith("-") || arg.StartsWith("/"))
                 {
-                    try
+                    // remove starting character
+                    arg = arg.Substring(1);
+
+                    switch (arg)
                     {
-                        param_timeout = Convert.ToInt32(args[2]);
-                        Logger.Information($"Changing timeout to '{param_timeout}'.");
+                        case "t":
+                        case "timeout":
+                            try
+                            {
+                                param_timeout = Convert.ToInt32(args[++i]);
+                                Logger.Information($"Changing timeout to '{param_timeout}'.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Warning($"Couldn't convert timeout:'{args[i]}' into integer, ignoring and continuing.", ex);
+                            }
+                            break;
+
+                        case "k":
+                        case "keepopen":
+                            Logger.Information($"Keeping the client open on exit.");
+                            param_leaveopen = true;
+                            break;
+
+                        default:
+                            Logger.Warning($"Ignoring unknown option: '{arg}'");
+                            break;
                     }
-                    catch(Exception ex)
-                    {
-                        Logger.Warning($"Couldn't convert timeout:'{args[2]}' into integer, ignoring and continuing.", ex);
-                    }
+                }
+                else
+                {
+                    // unknown parameter
+                    Logger.Warning($"Ignoring unknown parameter: '{arg}'");
                 }
             }
 
@@ -265,7 +302,7 @@ namespace bnetlauncher
             if (!selected_client.IsRunning)
             {
                 // Start the client
-                if (!selected_client.Start())
+                if (!selected_client.Start(!param_leaveopen))
                 {
                     Logger.Information($"Client '{selected_client.Name}' not running and/or failed to start it.");
                     ShowMessageAndExit($"Couldn't find the {selected_client.Name} running and failed to start it.\nExiting application",
@@ -591,14 +628,9 @@ namespace bnetlauncher
                         Logger.Information($"Leaving client '{selected_client.Id}' open.");
                     }
                 }
-                else
-                {
-                    Logger.Information($"Didn't start the client, leaving it open.");
-                }
             }
             catch (Exception ex)
             {
-                // TODO:  Is anything actually throwing exeptions?
                 Logger.Error($"Failed to close client.", ex);
             }
         }

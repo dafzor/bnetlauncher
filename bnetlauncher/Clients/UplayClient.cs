@@ -58,7 +58,7 @@ namespace bnetlauncher.Clients
             return true;
         }
 
-        public override bool Start()
+        public override bool Start(bool create_lockfile = true)
         {
             if (Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
             {
@@ -77,7 +77,8 @@ namespace bnetlauncher.Clients
                 // Close the launcher window
                 //Logger.Information($"Sending {Id} window a close message.");
                 //NativeMethods.SendMessage(client.MainWindowHandle, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-                lockfile.Create();
+
+                if (create_lockfile) lockfile.Create();
                 return true;
             }
             Logger.Error("Failed to start client.");

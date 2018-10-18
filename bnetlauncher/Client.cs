@@ -160,8 +160,9 @@ namespace bnetlauncher
         /// <summary>
         /// Starts the client.
         /// </summary>
+        /// <param name="create_lockfile">Flat to create lockfile to track if bnetlauncher started the client.</param>
         /// <returns>True if the process started.</returns>
-        public virtual bool Start()
+        public virtual bool Start(bool create_lockfile = true)
         {
             var client = Process.Start(Path.Combine(InstallPath, Exe));
 
@@ -170,7 +171,10 @@ namespace bnetlauncher
             Logger.Information($"Client '{Id}' running with pid:'{GetProcessId()}'.");
 
             // create the started file that signals the client was started by us.
-            lockfile.Create();
+            if (create_lockfile)
+            {
+                lockfile.Create();
+            }
             return ret;
         }
 

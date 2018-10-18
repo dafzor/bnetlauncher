@@ -117,7 +117,7 @@ namespace bnetlauncher.Clients
         /// Starts the battle.net client and returns WaitUntilReady result.
         /// </summary>
         /// <returns>The result of the WaitUntilReady call.</returns>
-        public override bool Start()
+        public override bool Start(bool create_lockfile = true)
         {
             // Just launches the client which is required for it to interpret launch commands properly.
             Logger.Information($"Starting '{Id}' client.");
@@ -128,7 +128,10 @@ namespace bnetlauncher.Clients
                 Process.Start(Path.Combine(InstallPath, Exe));
             }            
 
-            lockfile.Create();
+            if (create_lockfile)
+            {
+                lockfile.Create();
+            }
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
             // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
