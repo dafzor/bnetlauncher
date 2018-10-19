@@ -235,22 +235,29 @@ namespace bnetlauncher
             /// <summary>
             /// Complete file path to the lock file.
             /// </summary>
-            private string lock_file;
+            public string FileName
+            {
+                get
+                {
+                    return Path.Combine(Program.DataPath, $"{client.Id}.lock");
+                }
+            }
 
             public LockFile(Client client)
             {
                 this.client = client;
-                lock_file = Path.Combine(Program.DataPath, $"{client.Id}.lock");
             }
+
 
             /// <summary>
             /// Creates a file signaling that the client was started by bnetlauncher.
             /// </summary>
             public void Create()
             {
+
                 // We explicitly call close on the file we just created so that when we try to delete the file 
                 // it's not locked causing the next launch to also trigger a close of the client.
-                File.Create(lock_file).Close();
+                File.Create(FileName).Close();
             }
 
             /// <summary>
@@ -258,12 +265,12 @@ namespace bnetlauncher
             /// </summary>
             public void Delete()
             {
-                File.Delete(lock_file);
+                File.Delete(FileName);
             }
 
             public bool Exists()
             {
-                return File.Exists(lock_file);
+                return File.Exists(FileName);
             }
 
             public void AppendPid()
