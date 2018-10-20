@@ -26,7 +26,7 @@ Note: If the Battle.net client isn't running when starting the game it will be c
 |sc2            | Starcraft 2                                           |
 |hots           | Heroes of the Storm                                   |
 |scr            | Starcraft Remastered                                  |
-|dst2           | Destiny 2 (Overlay will not work!!! See notes bellow) |
+|dst2           | Destiny 2 (Overlay will not work!!! See notes below) |
 |codbo4         | Call of Duty: Black Ops 4                             |
 
 the result should look something like this:
@@ -54,7 +54,7 @@ More games or custom configs can be manualy added by creating a gamedb.ini file 
 
 A `gamesdb.ini.sample` is distributed with bnetlauncher containing a copy of the built in shortcuts.
 
-**Important:** Those defaults are not changable. bnetlauncher will always overide them with it's internal gamesdb.ini file. However it is possible to create different entries with custom options.
+**Important:** Those defaults are not changeable. bnetlauncher will always override them with it's internal gamesdb.ini file. However it is possible to create different entries with custom options.
 
 Exemple entry:
 
@@ -73,10 +73,10 @@ Explaining what each part does:
 * `cmd=VIPR` command to launch the game in the client
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
     to support 32 and 64 bit builds of the game.
-* `options=noargs,waitforexit` list of coma separated options, currently supported:
-  * `noargs` doesn`t throw an error when retriving blank arguments from the game
+* `options=noargs,waitforexit` list of comma separated options, currently supported:
+  * `noargs` doesn't throw an error when retrieving blank arguments from the game
   * `waitforexit` leave bnetlauncher open and waiting until the game existing
-  * `nolaunch` don`t directly launch the game but just open the client and try to find the game for an aditional 60s this can in theory be used for hacky PTR support.
+  * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s this can in theory be used for hacky PTR support.
 
 ## Known Issues
 
@@ -87,7 +87,7 @@ Explaining what each part does:
 * The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
   one of them is running has Administrator/Elevated Permissions, then all of them must also be run has
   Administrator/Elevated Permissions.
-* It's not possible to automaticly launch battle.net client PTR versions of games, the client provides no direct
+* It's not possible to automatically launch battle.net client PTR versions of games, the client provides no direct
   option to do this, however a workaround can be done by creating a new game entry and the nolaunch option.
 * Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
@@ -102,6 +102,6 @@ Explaining what each part does:
 
 internet coder Maruf for ghost tray icon fix code 
 github Ethan-BB for the new parameters to launch games on battle.net. 
-github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectivly. 
+github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectively. 
 /u/fivetwofoureight for creating and allowing me to use his icon. 
 /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs. 
