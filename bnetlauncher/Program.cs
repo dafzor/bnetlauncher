@@ -175,6 +175,7 @@ namespace bnetlauncher
                     {
                         case "t":
                         case "timeout":
+                        case "-timeout":
                             try
                             {
                                 param_timeout = Convert.ToInt32(args[++i]);
@@ -186,9 +187,10 @@ namespace bnetlauncher
                             }
                             break;
 
-                        case "k":
-                        case "keepopen":
-                            Logger.Information($"Keeping the client open on exit.");
+                        case "l":
+                        case "leaveopen":
+                        case "-leaveopen":
+                            Logger.Information($"Leaving the client open on exit.");
                             param_leaveopen = true;
                             break;
 
@@ -320,7 +322,7 @@ namespace bnetlauncher
             DateTime launch_request_date = DateTime.Now;
 
 
-            // If nolaunch is selected don't actually launch the game but instead wait 3s
+            // If nolaunch is selected don't actually launch the game but instead shows the clcient window and adds 1 minute to param_timeout
             if (!selected_game.Options.Contains("nolaunch"))
             {
                 Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
@@ -329,7 +331,7 @@ namespace bnetlauncher
             else
             {
                 selected_client.ShowWindow();
-                Thread.Sleep(3000);
+                param_timeout += 60;
             }
 
             // Searches for a game started trough the client for 15s
