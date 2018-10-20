@@ -31,7 +31,9 @@ Note: If the Battle.net client isn't running when starting the game it will be c
 
 the result should look something like this:
 
-    "G:\Steam\bnetlauncher.exe" wow
+    "G:\Steam\bnetlauncher.exe" ow
+    
+![Example Screenshot](https://madalien.com/media/uploads/2018/10/steam_parameters_bnetlauncher.png)
 
 ## Destiny 2
 
@@ -39,6 +41,8 @@ the result should look something like this:
 
 See https://www.bungie.net/en/Help/Article/46101 for more information.
 If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best option.
+
+Destiny 2 Setup Video Guide: https://www.youtube.com/watch?v=38WKKqd9dKQ
 
 ## Troubleshooting
 
