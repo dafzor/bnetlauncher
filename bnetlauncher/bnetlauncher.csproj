@@ -122,8 +122,8 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="instructions.txt" />
     <None Include="license.txt" />
+    <None Include="changelog.txt" />
     <Content Include="Resources\Battle_130.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -138,7 +138,7 @@
 
 del $(ProjectName)_vNext.zip
 copy /y  $(ProjectDir)Resources\gamesdb.ini  $(TargetDir)gamesdb.ini.example
-7z a -tzip $(ProjectName)_vNext.zip $(TargetDir)ILMerge\$(TargetFileName) $(ProjectDir)license.txt $(ProjectDir)instructions.txt $(TargetDir)gamesdb.ini.example</PostBuildEvent>
+7z a -tzip $(ProjectName)_vNext.zip $(TargetDir)ILMerge\$(TargetFileName) $(SolutionDir)README.md $(ProjectDir)license.txt $(ProjectDir)changelog.txt $(TargetDir)gamesdb.ini.example</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\ILMerge.MSBuild.Task.1.0.3\build\ILMerge.MSBuild.Task.targets" Condition="Exists('..\packages\ILMerge.MSBuild.Task.1.0.3\build\ILMerge.MSBuild.Task.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
