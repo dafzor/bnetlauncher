@@ -1,0 +1,111 @@
+Version History
+---------------
+
+2.00
+* Release of version 1.99 to replace v1.22 which has some current bugs
+* Should fix intermitent "game not found errors"
+
+1.99 (beta)
+* Major reorganization of the code
+* Totally changed how games are launched and detected running
+- removed -i option, people launching custom games should instead create a gamedb.ini
++ added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
++ clients are now started using scheduled tasks so steam overlay wont affect them
++ added -l option to leave client open if bnetlauncher started it
++ no longer leaves tray icon when closing clients (courtesy of Maruf) 
++ new logger system with more consistent formating making it easy to view in proper apps
++ new logger console when running debug builds
+
+1.22
+* Updated for changes in new Battle.net client beta.
+
+1.21
+* Proper fix thanks to Ethan-BB for the new battle.net client method to launch games.
+
+1.20 (unreleased)
+* Changed how bnetlauncher starts games to simulating a enter key on the client due to
+  breaking changes made by blizzard on how battlenet:// URI are handled
+
+1.19
++ Added notes clarifying Destiny 2 compatibility issues.
+* Possibly resolved some issues with incorrect checking of helpers in the previous version
+* Major Internal code refactoring to make things tidier
+
+1.18
++ Added repair code that tries to restore battle.net client launch capabilities
+* Additional improvements to error messages and handling
+* Updated known issues in the instructions.txt
+
+1.17
+- No longer accepts launch options that aren't on the list, old shortcuts might need to be updated
++ Added a -i parameter to still allow the use of any parameter if the user wants
+* Changed parameters to Launch options in messages to better match Steam's terminology.
+* Improved error code and messages
+* Fixed all the typos?
+
+1.16
+* Strip "-" and "/" from the launch option in case someone adds them
+* Check alias before know launch option for better log messages
+
+1.15
+* Workaround for Destiny 2 not showing as in-game on steam after launch
+* Made sure battle.net client is closed on error when launched by bnetlauncher
+
+1.14
++ Added alias for Destiny 2
+
+1.13
++ Added alias for Starcraft Remastered
+
+1.12
++ Tried to make it compatible with beta versions of the battle.net client
+
+1.11
++ Added additional checks for when battlenet:// URI handler is broken
+
+1.10
+* Fixed issue where battle.net client would be closed when it shouldn't
+
+1.9
++ Added more common issues to the instructions.
++ Added additional system information reporting to the log
+* Reverted 1.7b changes on how battle.net client is detected and improved them.
+* Updated some error messages to be more helpful
+
+1.8
++ Added alias to replace the blizzard internal parameters (old shortcuts will still work)
+* Updates and fixes to phrasing and spelling of error messages and instructions.txt
+* Replaced icon since it was copyrighted property of Blizzard with a custom made icon by /u/fivetwofoureight
+
+1.7b
++ Additional error check to attempt to account for a disabled Windows Management Instrumentation (WMI) service
+* Changed how it detects battle.net client is running so it will work with browser hardware acceleration off
+
+1.6
+* Fixed multiple instances of bnetlauncher being started at the same time
++ Added a lot more safeguards and error checking to every step
++ Added debug log that can be enabled by creating a enablelog.txt file in "%localappdata%\madalien.com\bnetlauncher\"
+
+1.5b4
+* Handle the proxy launchers for Starcraft 2 and HotS properly
+
+1.5b3
+* Fixed issue that would cause launching of games to fail if the working directory set on steam
+  did not match the game's path
+
+1.5b2
+- Made logging continuously append to the existing file.
+
+1.5b
++ Added debug logging that outputs to %LOCALAPPDATA%\madalien.com\Bnet Launcher for Steam
+* Potentially fixed issue that made the application crash when game process took too long to
+  start like for example the first boot or non SSD media.
+  
+1.4
+- Public release of the source under GPL3
+
+1.?
+- A lot of attempts figuring out how things actually work 
+
+1.0
+- First version I thought worked but actually didn't

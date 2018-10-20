@@ -1,81 +1,106 @@
 # bnetlauncher
+
 Launcher utility to help start battle.net games with the steam overlay.
 
 Official page http://madalien.com/stuff/bnetlauncher/
 
+## Purpose
 
-Purpose
--------
 This application is intended to facilitate the launch of battle.net games from steam with overlay
 while still being auto logged in by the battle.net client.
 
-Note: If the Battle.net client isn't running when starting the game it will be closed as soon as
-      the game starts, otherwise it will be left running.
+Note: If the Battle.net client isn't running when starting the game it will be closed as soon as the game starts, otherwise it will be left running.
 
+## Howto Use
 
-Howto Use
----------
 1. Extract the included exe to any location you want (ex: steam folder)
 2. Add the exe to steam as a non-steam game shortcut
 3. On the shortcut properties add one of the following parameters:
 
-|code		|game			|
-| ------------- | --------------------- |
-|wow		| World of Warcraft	|
-|d3		| Diablo 3		|
-|hs		| Heartstone		|
-|ow		| Overwatch		|
-|sc2		| Starcraft 2		|
-|hots		| Heroes of the Storm	|
-|scr		| Starcraft Remastered  |
-|dst2		| Destiny 2	(Overlay will not work!!! See notes bellow)	|
-|codbo4		| Call of Duty: Black Ops 4	|
-	
+| code          | game                                                  |
+| ------------- | ----------------------------------------------------- |
+|wow            | World of Warcraft                                     |
+|d3             | Diablo 3                                              |
+|hs             | Heartstone                                            |
+|ow             | Overwatch                                             |
+|sc2            | Starcraft 2                                           |
+|hots           | Heroes of the Storm                                   |
+|scr            | Starcraft Remastered                                  |
+|dst2           | Destiny 2 (Overlay will not work!!! See notes bellow) |
+|codbo4         | Call of Duty: Black Ops 4                             |
+
 the result should look something like this:
-	`"G:\Steam\bnetlauncher.exe" wow`
 
-Note: Any parameter not on the list will just show an error, to ignore and continue `-i` can be added
-      after the game parameter so it looks like: `bnetlauncher.exe my_parameter -i`
+    "G:\Steam\bnetlauncher.exe" wow
 
-Destiny 2: Bungie has decided to implement anti-cheat mechanisms that also cause most overlays to
-           not work as expected. See https://www.bungie.net/en/Help/Article/46101 for more information.
-           If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best
-           option.
+## Destiny 2
 
-Optional: In case of problems logging can be enabled by creating a enablelog.txt file inside
-          `"%localappdata%\madalien.com\bnetlauncher\"`, you can open the location by pasting the path
-		  into explorer or the run dialog in windows (WinKey+R)
+**Bungie has decided to implement anti-cheat mechanisms that also cause most overlays to not work as expected.**
 
+See https://www.bungie.net/en/Help/Article/46101 for more information.
+If you need SteamController functionality https://alia5.github.io/GloSC/ is currently the best option.
 
-Known Issues
--------------
-- Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by Bungie and cannot be resolved. Steam Input users can use https://alia5.github.io/GloSC/
-- Enabling multiple instances of battle.net client in it's options will break bnetlauncher functionality.
-- Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
+## Troubleshooting
+
+In case of problems logging can be enabled by creating a enablelog.txt file inside `%localappdata%\madalien.com\bnetlauncher\`, you can open the location by pasting the path into explorer or the run dialog in windows (WinKey+R)
+
+## Adding more Games
+
+From v2.00 onward bnetlauncher uses a internal gamedb.ini to control how games are launched.
+More games or custom configs can be manualy added by creating a gamedb.ini file in:
+
+* `%localappdata%\madalien.com\bnetlauncher\gamedb.ini`
+* the directory where the bnetlauncher executable is located.
+
+A `gamesdb.ini.sample` is distributed with bnetlauncher containing a copy of the built in shortcuts.
+
+**Important:** Those defaults are not changable. bnetlauncher will always overide them with it's internal gamesdb.ini file. However it is possible to create different entries with custom options.
+
+Exemple entry:
+
+    [codbo4]
+    name=Call of Duty: Black Ops 4
+    client=battlenet
+    cmd=VIPR
+    exe=BlackOps4.exe
+    options=noargs,waitforexit
+
+Explaining what each part does:
+
+* `[codbo4]`  the id that's passed to bnetlauncher to select the game ie `bnetlauncher.exe codbo4`
+* `name=Call of Duty: Black Ops 4` a friendly name for the game
+* `client=battlenet` the client the game uses, currently only battlenet is supported
+* `cmd=VIPR` command to launch the game in the client
+* `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
+    to support 32 and 64 bit builds of the game.
+* `options=noargs,waitforexit` list of coma separated options, currently supported:
+  * `noargs` doesn`t throw an error when retriving blank arguments from the game
+  * `waitforexit` leave bnetlauncher open and waiting until the game existing
+  * `nolaunch` don`t directly launch the game but just open the client and try to find the game for an aditional 60s this can in theory be used for hacky PTR support.
+
+## Known Issues
+
+* Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by Bungie and cannot be fixed. Steam Input users can use https://alia5.github.io/GloSC/ to work around it.
+* Enabling multiple instances of battle.net client in it's options might break bnetlauncher functionality.
+* Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
   with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
-- The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
+* The game, bnetlauncher and steam must all have the same running permissions to work properly, this means if
   one of them is running has Administrator/Elevated Permissions, then all of them must also be run has
   Administrator/Elevated Permissions.
-- It's not possible to launch PTR versions of games, bnetlauncher uses battle.net client URI handler to
-  start the games, which does not support the PTR versions. I haven't found a solution for this.
-- If bnetlauncher is used to start multiple games at the same time the last ones to launch will not be automaticly
-   signed in.
-- Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
+* It's not possible to automaticly launch battle.net client PTR versions of games, the client provides no direct
+  option to do this, however a workaround can be done by creating a new game entry and the nolaunch option.
+* Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
-- Users of the 1.5 beta series will need to delete the "%localappdata%\madalien.com\Battle.net Launcher for Steam"
-  directory by hand.
-- There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
-- On close battle.net client will leave a "ghost" tray icon after being closed by bnetlauncher, moving the mouse
-  over it will make it disappear.
+* There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 
-Requirements
-------------
-Windows 7 or above (Only really tested on Windows 10)
-.Net Framework 4.5  (already included in Windows 8 or above) or better.
-Download link: https://www.microsoft.com/en-us/download/details.aspx?id=48130
+## Requirements
 
-Special Thanks
---------------
+* Windows 7 SP1 or above (Only really tested on Windows 10)
+* .Net Framework 4.6.1  (already included in Windows 10 November Update [Version 1511] or above). Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
+
+## Special Thanks
+
+internet coder Maruf for ghost tray icon fix code 
 github Ethan-BB for the new parameters to launch games on battle.net. 
 github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectivly. 
 /u/fivetwofoureight for creating and allowing me to use his icon. 

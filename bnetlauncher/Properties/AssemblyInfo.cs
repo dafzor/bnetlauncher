@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2016 madalien.com
+﻿// Copyright (C) 2016-2018 madalien.com
 // This file is part of bnetlauncher.
 //
 // bnetlauncher is free software: you can redistribute it and/or modify
@@ -49,5 +49,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.22.*")]
-//[assembly: AssemblyFileVersion("1.22.*")]
+[assembly: AssemblyVersion("2.00.*")]
+//[assembly: AssemblyFileVersion("2.00.*")]
