@@ -322,7 +322,7 @@ namespace bnetlauncher
             DateTime launch_request_date = DateTime.Now;
 
 
-            // If nolaunch is selected don't actually launch the game but instead shows the clcient window and adds 1 minute to param_timeout
+            // If nolaunch is selected don't actually launch the game but instead shows the client window and adds 1 minute to param_timeout
             if (!selected_game.Options.Contains("nolaunch"))
             {
                 Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
@@ -334,36 +334,56 @@ namespace bnetlauncher
                 param_timeout += 60;
             }
 
-            // Searches for a game started trough the client for 15s
-            Logger.Information($"Searching for the game process '{selected_game.Exe}' for '{param_timeout}' seconds.");
-            int game_process_id = 0;
-            stopwatch.Restart();
-
-            while (game_process_id == 0 && DateTime.Now.Subtract(launch_request_date).TotalSeconds < param_timeout)
+            var game_process_id = 0;
+            do
             {
-                game_process_id = Processes.GetProcessByNameAfterDate(selected_game.Exe, launch_request_date);
+                // Searches for a game started trough the client for 15s
+                game_process_id = Processes.GetProcessByNameAfterDate(selected_game.Exe, launch_request_date, param_timeout);
+
+                // did we find it?
                 if (game_process_id == 0)
                 {
-                    // Avoids spamming log more then once a second
-                    if (stopwatch.Elapsed.TotalSeconds > 1)
+                    // didn't find the game process within timeout
+                    Logger.Error($"Game '{selected_game.Id}' not found within timeout.");
+
+                    // Game might be updating
+                    var msg = $"Couldn't find {selected_game.Name} running, do you wish to keep trying?\n\n" +
+                        "Canceling will exit bnetlauncher but leave the client open.\n\n" +
+
+                        "This message is usually caused by the game being slow to start or an update being required. " +
+                        "For slow starting games the launch option '-t' can also be used to increase the timeout limit.\n\n" +
+                        "If you keep getting this message make sure the client is working properly and try rebooting your system.\n";
+
+                    var answer = MessageBox.Show(msg, "Game not Found. Retry?",
+                        MessageBoxButtons.RetryCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+
+                    switch (answer)
                     {
-                        Logger.Warning($"Game '{selected_game.Exe}' not running.");
-                        stopwatch.Restart();
+                        case DialogResult.Retry:
+                            Logger.Information("User chose to retry searching for game.");
+                            continue; // back to the begining and try again
+
+                        case DialogResult.Cancel:
+                            try
+                            {
+                                Logger.Information("User chose to cancel.");
+
+                                // Make it so we leave the client open
+                                selected_client.WasStarted = false;
+
+                                // Cleans up the mutex
+                                if (launcher_mutex != null) launcher_mutex.Close();
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error("Error releasing the mutex.", ex);
+                            }
+
+                            return;
                     }
                 }
             }
-            stopwatch.Stop();
-
-            if (game_process_id == 0)
-            {
-                Logger.Error($"Game '{selected_game.Id}' not found within timeout.");
-
-                // Exit Application
-                ShowMessageAndExit("Couldn't find a game process.\n" +
-                    "Please check if the Client did not encounter an error and the game can be launched normaly.\n\n" +
-                    "bnetlauncher will now exit.",
-                    "Game not found");
-            }
+            while (game_process_id == 0); // keep's retrying until user cancels or game found
         
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
@@ -637,7 +657,9 @@ namespace bnetlauncher
             }
         }
 
-
+        /// <summary>
+        /// File version information for bnetlauncher executable
+        /// </summary>
         internal static FileVersionInfo VersionInfo
         {
             get

@@ -128,12 +128,16 @@ namespace bnetlauncher.Utils
         /// <summary>
         /// Returns the process id of the process with the given name that's closest to the date given.
         /// </summary>
+        /// <param name="name">Name of the process to search for.</param>
         /// <param name="date">Date to filter from. Only processes with a greater then date will be returned.</param>
+        /// <param name="timeout">time in seconds to retry looking for the process</param>
         /// <returns>Process Id of the process.</returns>
-        public static int GetProcessByNameAfterDate(string name, DateTime date)
-
+        public static int GetProcessByNameAfterDate(string name, DateTime date, int timeout = 15)
         {
-            DateTime game_process_date = DateTime.Now;
+            var game_process_date = DateTime.MaxValue;
+            var stopwatch_timeout = new Stopwatch();
+
+            int seconds_passed = 0;
             int game_process_id = 0;
 
             var wmiq = String.Format(
@@ -142,24 +146,34 @@ namespace bnetlauncher.Utils
 
             using (var searcher = new ManagementObjectSearcher(wmiq))
             {
-                foreach (var result in searcher.Get())
+                stopwatch_timeout.Restart();
+
+
+                // Keep looking until timeout is reached or we find a process
+                while (game_process_id == 0 && stopwatch_timeout.Elapsed.TotalSeconds < timeout)
                 {
-                    var result_process_id = Convert.ToInt32(result["ProcessId"]);
-                    var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
-
-                    Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff")}' with pid:'{result_process_id}'");
-
-                    // Closest to the given date is the one we return
-                    if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)
+                    // Avoids spamming the log with looking for process messages
+                    if ((stopwatch_timeout.ElapsedMilliseconds - (seconds_passed*1000)) > 0)
                     {
-                        game_process_id = result_process_id;
-                        game_process_date = result_process_date;
+                        Logger.Information($"Searching for process '{name}' for '{timeout - seconds_passed}' seconds.");
+                        seconds_passed++;
+                    }
+
+                    foreach (var result in searcher.Get())
+                    {
+                        var result_process_id = Convert.ToInt32(result["ProcessId"]);
+                        var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
+
+                        Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff")}' with pid:'{result_process_id}'");
+
+                        // Closest to the given date is the one we return
+                        if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)
+                        {
+                            game_process_id = result_process_id;
+                            game_process_date = result_process_date;
+                        }
                     }
                 }
-            }
-            if (game_process_id == 0)
-            {
-                return 0;
             }
             return game_process_id;
         }

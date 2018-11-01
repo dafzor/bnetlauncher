@@ -59,14 +59,25 @@ namespace bnetlauncher
         public bool MustBeRunning { get; protected set; }
 
         /// <summary>
-        /// Returns true if the client was started by bnetlauncher.
-        /// It does so by using the existance of a flag file.
+        /// Allows checking or setting if the client was started by bnetlauncher.
+        /// It does so by using the checking, creating or deleting of a flag file.
         /// </summary>
         public bool WasStarted
         {
             get
             {
                 return lockfile.Exists();
+            }
+            set
+            {
+                if (value == true && !lockfile.Exists())
+                {
+                    lockfile.Create();
+                }
+                if (value == false && lockfile.Exists())
+                {
+                    lockfile.Delete();
+                }
             }
         }
 

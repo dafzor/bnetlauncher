@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+2.01
+* Tried to more gracefuly deal with not finding the game running due to updates
+
 2.00
 * Release of version 1.99 to replace v1.22 which has some current bugs
 * Should fix intermitent "game not found errors"
