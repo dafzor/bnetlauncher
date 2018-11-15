@@ -1,7 +1,8 @@
 Version History
 ---------------
 
-2.01
+2.01b
++ Warcraft 3: Reforged support
 * Tried to more gracefully deal with not finding the game running due to updates
 
 2.00

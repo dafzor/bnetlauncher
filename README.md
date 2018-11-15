@@ -26,7 +26,8 @@ Note: If the Battle.net client isn't running when starting the game it will be c
 |sc2            | Starcraft 2                                           |
 |hots           | Heroes of the Storm                                   |
 |scr            | Starcraft Remastered                                  |
-|dst2           | Destiny 2 (Overlay will not work!!! See notes below) |
+|w3             | Warcraft 3: Reforged                                  |
+|dst2           | Destiny 2 (Overlay will not work!!! See notes below)  |
 |codbo4         | Call of Duty: Black Ops 4                             |
 
 the result should look something like this:
