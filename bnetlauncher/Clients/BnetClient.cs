@@ -117,16 +117,25 @@ namespace bnetlauncher.Clients
         /// Starts the battle.net client and returns WaitUntilReady result.
         /// </summary>
         /// <returns>The result of the WaitUntilReady call.</returns>
-        public override bool Start(bool create_lockfile = true)
+        public override bool Start(bool create_lockfile = true, bool no_task = false)
         {
             // Just launches the client which is required for it to interpret launch commands properly.
             Logger.Information($"Starting '{Id}' client.");
 
-            if (!Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
+            if (!no_task)
             {
-                Logger.Warning("Failed to start client trough task.");
+                Logger.Information("Starting the client directly.");
                 Process.Start(Path.Combine(InstallPath, Exe));
-            }            
+            }
+            else
+            {
+                Logger.Information("Starting the client trough task.");
+                if (!Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
+                {
+                    Logger.Warning("Failed to start client trough task.");
+                    Process.Start(Path.Combine(InstallPath, Exe));
+                }
+            }
 
             if (create_lockfile)
             {

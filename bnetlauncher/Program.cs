@@ -98,6 +98,11 @@ namespace bnetlauncher
         /// </summary>
         static bool param_leaveopen = false;
 
+        /// <summary>
+        /// Flag to launch client normaly instead of using the task.
+        /// </summary>
+        static bool param_notask = false;
+
         static Stopwatch stopwatch = new Stopwatch();
 
         [STAThread]
@@ -192,6 +197,13 @@ namespace bnetlauncher
                         case "-leaveopen":
                             Logger.Information($"Leaving the client open on exit.");
                             param_leaveopen = true;
+                            break;
+
+                        case "n":
+                        case "notask":
+                        case "-notask":
+                            Logger.Information($"Disabling task launching");
+                            param_notask = true;
                             break;
 
                         default:
@@ -304,7 +316,7 @@ namespace bnetlauncher
             if (!selected_client.IsRunning)
             {
                 // Start the client
-                if (!selected_client.Start(!param_leaveopen))
+                if (!selected_client.Start(!param_leaveopen, (param_notask || selected_game.Options.Contains("notask"))))
                 {
                     Logger.Information($"Client '{selected_client.Name}' not running and/or failed to start it.");
                     ShowMessageAndExit($"Couldn't find the {selected_client.Name} running and failed to start it.\nExiting application",

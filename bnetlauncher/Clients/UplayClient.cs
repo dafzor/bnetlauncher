@@ -58,7 +58,7 @@ namespace bnetlauncher.Clients
             return true;
         }
 
-        public override bool Start(bool create_lockfile = true)
+        public override bool Start(bool create_lockfile = true, bool no_task = false)
         {
             if (Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
             {
