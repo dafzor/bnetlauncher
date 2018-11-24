@@ -114,7 +114,7 @@ Explaining what each part does:
 To remove all traces of bnetlauncher from your system:
 
 * type 'Task Scheduler' in start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the client
-* type %localappdata%\madalien.com in start menu and open the folder, delete bnetlauncher folder to remove log and gamedb.ini files
+* type `%localappdata%\madalien.com` in start menu and open the folder, delete bnetlauncher folder to remove log and gamedb.ini files
 
 ## Requirements
 
