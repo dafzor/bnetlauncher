@@ -49,6 +49,15 @@ Destiny 2 Setup Video Guide: https://www.youtube.com/watch?v=38WKKqd9dKQ
 
 In case of problems logging can be enabled by creating a enablelog.txt file inside `%localappdata%\madalien.com\bnetlauncher\`, you can open the location by pasting the path into explorer or the run dialog in windows (WinKey+R)
 
+## Aditional options
+
+There's also the following aditional options provided by command line switches:
+
+* `--timeout <seconds>, -t <seconds>` changes how many seconds it tries to look for the game before giving an error (15 seconds by default).
+* `--notask, -n` starts the launcher directly instead of trying to use a scheduled task
+* `--leaveopen, -l` leaves the client open after launcher the game. If combined with `--notask` option it will show you as playing on steam until you close the client.
+
+
 ## Adding more Games
 
 From v2.00 onward bnetlauncher uses a internal gamedb.ini to control how games are launched.
@@ -82,6 +91,7 @@ Explaining what each part does:
   * `noargs` doesn't throw an error when retrieving blank arguments from the game
   * `waitforexit` leave bnetlauncher open and waiting until the game existing
   * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s this can in theory be used for hacky PTR support.
+  * `notask` doesn't start the client trough a scheduled task
 
 ## Known Issues
 
@@ -93,10 +103,18 @@ Explaining what each part does:
   one of them is running has Administrator/Elevated Permissions, then all of them must also be run has
   Administrator/Elevated Permissions.
 * It's not possible to automatically launch battle.net client PTR versions of games, the client provides no direct
-  option to do this, however a workaround can be done by creating a new game entry and the nolaunch option.
+  option to do this, however a workaround can be done by creating a new game entry and the nolaunch option and manualy clicking play.
+* Default launching the client trough a scheduled task may be incompatible with some setups, workaround is providade with `notask` switch/option. 
 * Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
 * There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
+
+## Uninstalling
+
+To remove all traces of bnetlauncher from your system:
+
+* type 'Task Scheduler' in start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the client
+* type %localappdata%\madalien.com in start menu and open the folder, delete bnetlauncher folder to remove log and gamedb.ini files
 
 ## Requirements
 

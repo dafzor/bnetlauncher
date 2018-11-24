@@ -1,7 +1,12 @@
 Version History
 ---------------
 
-2.01b
+2.02
++ added -n option to not use scheduled task to start the client
+* changed Warcraft3 to look for Warcraft III.exe instead of war3.exe
+* improved documentation
+
+2.01
 + Warcraft 3: Reforged support
 * Tried to more gracefully deal with not finding the game running due to updates
 
