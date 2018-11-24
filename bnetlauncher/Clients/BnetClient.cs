@@ -122,7 +122,7 @@ namespace bnetlauncher.Clients
             // Just launches the client which is required for it to interpret launch commands properly.
             Logger.Information($"Starting '{Id}' client.");
 
-            if (!no_task)
+            if (no_task)
             {
                 Logger.Information("Starting the client directly.");
                 Process.Start(Path.Combine(InstallPath, Exe));
