@@ -29,6 +29,7 @@ Note: If the Battle.net client isn't running when starting the game it will be c
 |w3             | Warcraft 3: Reforged                                  |
 |dst2           | Destiny 2 (Overlay will not work!!! See notes below)  |
 |codbo4         | Call of Duty: Black Ops 4                             |
+|codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 
 the result should look something like this:
 
@@ -119,7 +120,7 @@ To remove all traces of bnetlauncher from your system:
 ## Requirements
 
 * Windows 7 SP1 or above (Only really tested on Windows 10)
-* .Net Framework 4.6.1  (already included in Windows 10 November Update [Version 1511] or above). Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
+* .Net Framework 4.7.2 (already included in Windows 10 April 2018 Update [Version 1803] or above). Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
 
 ## Special Thanks
 

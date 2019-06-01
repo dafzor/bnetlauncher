@@ -1,5 +1,8 @@
 Version History
 ---------------
+2.03 (pre-release)
++ Preliminar support for Call of Duty: Modern Warfare 2019 
+* Updated .NET Framework to 4.7.2
 
 2.02
 + added -n option to not use scheduled task to start the client
