@@ -59,6 +59,7 @@ using IniParser;
 using IniParser.Model;
 using System.Reflection;
 using bnetlauncher.Utils;
+using System.Globalization;
 
 namespace bnetlauncher
 {
@@ -168,10 +169,10 @@ namespace bnetlauncher
             // Check if the param_timeout is passed as a second parameter
             for (var i = 1; i < args.Length; i++)
             {
-                var arg = args[i].ToLower().Trim();
+                var arg = args[i].ToLowerInvariant().Trim();
 
                 // parse options
-                if (arg.StartsWith("-") || arg.StartsWith("/"))
+                if (arg.StartsWith("-", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("/", StringComparison.OrdinalIgnoreCase))
                 {
                     // remove starting character
                     arg = arg.Substring(1);
@@ -183,7 +184,7 @@ namespace bnetlauncher
                         case "-timeout":
                             try
                             {
-                                param_timeout = Convert.ToInt32(args[++i]);
+                                param_timeout = Convert.ToInt32(args[++i], CultureInfo.InvariantCulture);
                                 Logger.Information($"Changing timeout to '{param_timeout}'.");
                             }
                             catch (Exception ex)
@@ -221,7 +222,7 @@ namespace bnetlauncher
             // Retrieves the first parameter that should be the game id and checks it against the games list
             // In an attempt to avoid user mistakes we clean the input by forcing lowercase and strip - and /
             // before comparing it to know ids.
-            var param_game = args[0].Trim().Replace("-", "").Replace("/", "").ToLower();
+            var param_game = args[0].Trim().Replace("-", "").Replace("/", "").ToLowerInvariant();
             Logger.Information($"Given parameter '{args[0]}'.");
             selected_game = games.Find(g => g.Id == param_game);
 
@@ -337,7 +338,7 @@ namespace bnetlauncher
             // If nolaunch is selected don't actually launch the game but instead shows the client window and adds 1 minute to param_timeout
             if (!selected_game.Options.Contains("nolaunch"))
             {
-                Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff")}'");
+                Logger.Information($"Issuing game launch command '{selected_game.Cmd}' at '{launch_request_date.ToString("hh:mm:ss.ffff", CultureInfo.InvariantCulture)}'");
                 selected_client.Launch(selected_game.Cmd);
             }
             else
@@ -402,7 +403,7 @@ namespace bnetlauncher
             var process = new Process() { StartInfo = Processes.GetProcessStartInfoById(game_process_id) };
 
             // Make sure our StartInfo is actually filled and not blank
-            if (process.StartInfo.FileName == "" || (process.StartInfo.Arguments == "" && !selected_game.Options.Contains("noargs")))
+            if (String.IsNullOrEmpty(process.StartInfo.FileName) || (String.IsNullOrEmpty(process.StartInfo.Arguments) && !selected_game.Options.Contains("noargs")))
             {
                 Logger.Error("Failed to obtain game parameters.");
 
@@ -752,9 +753,9 @@ namespace bnetlauncher
                     long capacity = 0;
                     foreach (var result in searcher.Get())
                     {
-                        capacity += Convert.ToInt64(result["Capacity"]);
+                        capacity += Convert.ToInt64(result["Capacity"], CultureInfo.InvariantCulture);
                     }
-                    sysinfo.ram_capacity = (capacity / Math.Pow(1024, 2)).ToString() + "MB";
+                    sysinfo.ram_capacity = (capacity / Math.Pow(1024, 2)).ToString(CultureInfo.InvariantCulture) + "MB";
                 }
 
                 // HDD
@@ -775,7 +776,7 @@ namespace bnetlauncher
                     {
                         sysinfo.gpu_name = result["Caption"].ToString();
                         // Video RAM is given in bytes so we convert it to MB
-                        sysinfo.gpu_ram = (Convert.ToInt64(result["AdapterRAM"]) / Math.Pow(1024, 2)).ToString() + "MB";
+                        sysinfo.gpu_ram = (Convert.ToInt64(result["AdapterRAM"], CultureInfo.InvariantCulture) / Math.Pow(1024, 2)).ToString(CultureInfo.InvariantCulture) + "MB";
                         sysinfo.gpu_driver = result["DriverVersion"].ToString();
                     }
                 }
