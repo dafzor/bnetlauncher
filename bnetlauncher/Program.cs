@@ -71,6 +71,7 @@ namespace bnetlauncher
         static List<Client> clients = new List<Client>
         {
             new Clients.BnetClient(),
+            new Clients.BnetClient2(),
 
             // DISABLED: WIP not good enough to work let alone release
             //new Clients.UplayClient()

@@ -26,6 +26,9 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using bnetlauncher.Utils;
+using ProtoBuf;
+using System.Windows.Forms;
+using bnetlauncher.Utils.ProductDb;
 
 namespace bnetlauncher.Clients
 {
@@ -101,16 +104,64 @@ namespace bnetlauncher.Clients
         /// <param name="cmd">Battle.net client ID command to launch.</param>
         public override bool Launch(string cmd)
         {
+            string db_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "battle.net\\Agent\\product.db");
+            string path = "";
+
+            Logger.Information($"Products.db path '{db_file}'");
+
+            //TODO: Split this into apropriate function
+            Database db;
+            using (var file = File.OpenRead(db_file))
+            {
+                db = Serializer.Deserialize<Database>(file);
+                
+                foreach (ProductInstall pi in db.productInstalls)
+                {
+                   if (pi.productCode.Equals(cmd, StringComparison.OrdinalIgnoreCase))
+                    {
+                        path = pi.Settings.installPath;
+                        Logger.Information($"Found install path '{path}'.");
+                        break;
+                    }
+                }
+
+                if (String.IsNullOrEmpty(path))
+                {
+                    Logger.Error($"Couldn't find install path for {cmd}");
+                    return false;
+                }
+            }
+
+
             try
             {
-                Process.Start(Path.Combine(InstallPath, Exe), $"--exec=\"launch {cmd}\"");
+                Process p = Process.Start(Path.Combine(InstallPath, Exe), $"--game={cmd} --gamepath=\"{path}\" --productcode={cmd}");
+                p.WaitForExit();
+
+
+                DateTime start = DateTime.Now;
+                while (DateTime.Now.Subtract(start).TotalMinutes < 2)
+                {
+                    if (Windows.IsForegroundWindowTitle("Blizzard Battle.net"))
+                    {
+                        // TODO: Refine this
+                        // need to give time for UI to update
+                        Thread.Sleep(500);
+
+                        SendKeys.SendWait("{ENTER}");
+                        return true;
+                    }
+
+                    Thread.Sleep(10);
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
                 Logger.Error($"Couldn't start game using '{cmd}'.", ex);
                 return false;
             }
-            return true;
         }
 
         /// <summary>
@@ -246,6 +297,11 @@ namespace bnetlauncher.Clients
             // battle.net should be fully running
             Logger.Information($"Client fully running with pid:'{GetProcessId()}'");
             return true;
+        }
+
+        private string GetProductInstallPath(string product_code)
+        {
+            return "";
         }
     }
 }
