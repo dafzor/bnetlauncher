@@ -23,6 +23,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Management;
 using System.Threading;
+using System.Globalization;
 
 namespace bnetlauncher.Utils
 {
@@ -45,7 +46,7 @@ namespace bnetlauncher.Utils
             {
                 foreach (var result in searcher.Get())
                 {
-                    KillProcessAndChildsById(Convert.ToInt32(result["ProcessID"]));
+                    KillProcessAndChildsById(Convert.ToInt32(result["ProcessID"], CultureInfo.InvariantCulture));
                 }
                 try
                 {
@@ -142,7 +143,7 @@ namespace bnetlauncher.Utils
 
             var wmiq = String.Format(
                 "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}%'",
-                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(), name);
+                ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(CultureInfo.InvariantCulture), name);
 
             using (var searcher = new ManagementObjectSearcher(wmiq))
             {
@@ -161,10 +162,10 @@ namespace bnetlauncher.Utils
 
                     foreach (var result in searcher.Get())
                     {
-                        var result_process_id = Convert.ToInt32(result["ProcessId"]);
+                        var result_process_id = Convert.ToInt32(result["ProcessId"], CultureInfo.InvariantCulture);
                         var result_process_date = ManagementDateTimeConverter.ToDateTime(result["CreationDate"].ToString());
 
-                        Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff")}' with pid:'{result_process_id}'");
+                        Logger.Information($"Found game process started at '{result_process_date.ToString("hh:mm:ss.ffff", CultureInfo.InvariantCulture)}' with pid:'{result_process_id}'");
 
                         // Closest to the given date is the one we return
                         if (result_process_date.Subtract(date).TotalMilliseconds < game_process_date.Subtract(date).TotalMilliseconds)

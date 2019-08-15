@@ -76,7 +76,7 @@ namespace bnetlauncher.Clients
                         using (var bnet_uninstall_key = registry.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Battle.net"))
                         {
                             var bnet_path = bnet_uninstall_key.GetValue("InstallLocation").ToString();
-                            if (bnet_path == "")
+                            if (String.IsNullOrEmpty(bnet_path))
                             {
                                 Logger.Error("Failed to retrieve path from battle.net uninstall entry");
                             }
@@ -176,7 +176,7 @@ namespace bnetlauncher.Clients
 
                 if (match.Success)
                 {
-                    if (match.Groups[1].Value.Equals("true"))
+                    if (match.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
                     {
                         return 2;
                     }

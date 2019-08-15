@@ -115,7 +115,7 @@ namespace bnetlauncher
             {
                 if (value is string)
                 {
-                    options = value.ToLower().Trim();
+                    options = value.ToLowerInvariant().Trim();
                 }
                 else
                 {
