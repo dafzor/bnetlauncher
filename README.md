@@ -20,9 +20,13 @@ Note: If the Battle.net client isn't running when starting the game it will be c
 | code          | game                                                  |
 | ------------- | ----------------------------------------------------- |
 |wow            | World of Warcraft                                     |
+|wowclassic		| World of Warcraft Classic								|
+|wowptr			| World of Warcraft Public Test Realm					|
 |d3             | Diablo 3                                              |
+|d3ptr			| Diablo 3 Public Test Realm							|
 |hs             | Heartstone                                            |
 |ow             | Overwatch                                             |
+|owptr			| Overwatch Public Test Realm							|
 |sc2            | Starcraft 2                                           |
 |hots           | Heroes of the Storm                                   |
 |scr            | Starcraft Remastered                                  |
@@ -83,9 +87,12 @@ Exemple entry:
 Explaining what each part does:
 
 * `[codbo4]`  the id that's passed to bnetlauncher to select the game ie `bnetlauncher.exe codbo4`
-* `name=Call of Duty: Black Ops 4` a friendly name for the game
-* `client=battlenet` the client the game uses, currently only battlenet is supported
-* `cmd=VIPR` command to launch the game in the client
+* `name=Call of Duty: Black Ops 4` a friendly name for the game used for error and help messages
+* `client=battlenet` the client module used to launch the game, currently there's battlenet and battlenet2, 
+   difference bettwen the two is that battlenet2 can launch ptr/classic version but might be less reliable.
+* `cmd=VIPR` command to launch the game in the client depending on the client module used. Commands can be discovered by looking at logs in different locations: 
+     - for battlenet `'%LOCALAPPDATA%\Battle.net\Logs\battle.net*.log'` 
+     - for battlenet2 `'C:\ProgramData\Battle.net\Setup\<game>\*.log'`
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
     to support 32 and 64 bit builds of the game.
 * `options=noargs,waitforexit` list of comma separated options, currently supported:
