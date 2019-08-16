@@ -801,6 +801,6 @@ namespace bnetlauncher
         /// <summary>
         /// String that identifies the named mutex.
         /// </summary>
-        private static string mutex_name = "Local\\madalien.com_bnetlauncher_";
+        private static string mutex_name = @"Local\madalien.com_bnetlauncher_";
     }
 }
