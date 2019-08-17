@@ -2,7 +2,8 @@ Version History
 ---------------
 2.05
 + added capability to launch ptr and classic versions of games
-* improved documentation a bit
+* improved documentation
+* updated libraries
 
 2.03 (pre-release)
 + Preliminar support for Call of Duty: Modern Warfare 2019 

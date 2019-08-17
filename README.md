@@ -12,6 +12,12 @@ while still being automaticly logged in by the battle.net client.
 Note: If the Battle.net client isn't running when starting the game it will be closed as soon as
 the game starts, otherwise it will be left running.
 
+## Requirements
+
+* Windows 7 SP1 or above (Only tested on Windows 10)
+* .Net Framework 4.7.2 (included in Windows 10 April 2018 Update [Version 1803] or above).
+  Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
+
 ## Howto Use
 
 1. Extract the included exe to any location you want (ex: steam folder)
@@ -51,19 +57,14 @@ If you need SteamController functionality use https://alia5.github.io/GloSC/ in 
 
 Destiny 2 Setup Video Guide: https://www.youtube.com/watch?v=38WKKqd9dKQ
 
-**Note:** Destiny 2 is moving to steam on the 1st of October so this will no longer be required. https://store.steampowered.com/app/1085660/Destiny_2/
+**Note:** [Destiny 2 is moving to steam](https://store.steampowered.com/app/1085660/Destiny_2/) on the 1st of October
+so bnetlauncher and workaround should no longer be required.
+
 
 ## Troubleshooting
 
-In case of problems logging can be enabled by creating a enablelog.txt file inside `%localappdata%\madalien.com\bnetlauncher\`, you can open the location by pasting the path into explorer or the run dialog in windows (WinKey+R)
-
-## Aditional options
-
-There's also the following aditional options provided by command line switches:
-
-* `--timeout <seconds>, -t <seconds>` changes how many seconds it tries to look for the game before giving an error (15 seconds by default).
-* `--notask, -n` starts the launcher directly instead of using task scheduler (used so steam overlay isn't attached to the battle.net client)
-* `--leaveopen, -l` leaves the client open after launcher the game. If combined with `--notask` option it will show you as playing on steam until you close the client.
+In case of problems logging can be enabled by creating a enablelog.txt file inside `%localappdata%\madalien.com\bnetlauncher\`,
+you can open the location by pasting the path into explorer or the run dialog in windows (WinKey+R)
 
 ## Known Issues
 
@@ -71,6 +72,8 @@ There's also the following aditional options provided by command line switches:
   keypress to it so it will launch the game. Not letting the Battle.net client gain focus will break the functionality.
 * Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by
   Bungie and cannot be fixed. Steam Input users can and should use https://alia5.github.io/GloSC/ to work around it.
+* Slow computers might take too long causing to bnetlauncher to think something went wrong, see aditional options
+  on how to use --timeout to fix it.
 * Enabling multiple instances of battle.net client in it's options might break bnetlauncher functionality.
 * Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
   with their own overlay and steam's, to solve the issue disable the 3rd party application overlay.
@@ -81,17 +84,28 @@ There's also the following aditional options provided by command line switches:
   option to do this, however a workaround can be done by creating a new game entry and the nolaunch option and
   manualy selecting the region before clicking play.
 * Default launching the client trough a scheduled task may be incompatible with some setups, workaround is
-  providade with `notask` switch/option.
+  providade with `--notask` switch/option.
 * Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
 * There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
+
+## Aditional options
+
+There's also the following aditional options provided by command line switches:
+
+* `--timeout <seconds>, -t <seconds>` changes how many seconds it tries to look for the game before giving an error (15 seconds by default).
+* `--notask, -n` starts the launcher directly instead of using task scheduler (starting the client directly will cause steam to apply the overlay
+  to the client and consider you playing the game until the client exists)
+* `--leaveopen, -l` leaves the client open after launcher the game. If combined with `--notask` option it will show you as playing on steam until
+  you close the client.
+
 
 ## Uninstalling
 
 To remove all traces of bnetlauncher from your system:
 
-* type 'Task Scheduler' in start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the client
-* type `%localappdata%\madalien.com` in start menu and open the folder, delete bnetlauncher folder to remove log and gamedb.ini files
+* Search for 'taskschd.msc' in the start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the client
+* Search for `%localappdata%\madalien.com` in start menu and open the folder, delete bnetlauncher folder to remove any created logs and gamedb.ini files
 
 ## Advanced: Adding new blizzard games or custom cases
 
@@ -125,7 +139,8 @@ Explaining what each part does:
 * `name=Call of Duty: Black Ops 4` a friendly name for the game used for error and help messages
 * `client=battlenet` the client module used to launch the game, currently there's battlenet and battlenet2,
    difference bettwen the two is that battlenet2 can launch ptr/classic version of games but could be less reliable then battlenet.
-* `cmd=VIPR` command to launch the game, for the battlenet it's a special id that allows direct launching of the game, with battlenet2 it's the game's productCode. Those values can be discovered by looking at logs in different locations:
+* `cmd=VIPR` command to launch the game, for the battlenet it's a special id that allows direct launching of the game, with battlenet2
+  it's the game's productCode. Those values can be discovered by looking at logs in different locations:
   * for battlenet `'%LOCALAPPDATA%\Battle.net\Logs\battle.net*.log'`
   * for battlenet2 `'C:\ProgramData\Battle.net\Setup\<game>\*.log'`
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
@@ -133,13 +148,9 @@ Explaining what each part does:
 * `options=noargs,waitforexit` list of comma separated options, currently supported:
   * `noargs` doesn't throw an error when retrieving blank arguments from the game (needed for blackops4.exe)
   * `waitforexit` leave bnetlauncher open and waiting until the game existing (needed for destiny 2 to show you as playing)
-  * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s. This can be used launch a game and give time to select a region or other unsuported options.
+  * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s. This can be 
+    used launch a game and give time to select a region or other unsuported options.
   * `notask` doesn't start the client trough a scheduled task, this will make the steam overlay also apply to the battle.net client
-
-## Requirements
-
-* Windows 7 SP1 or above (Only really tested on Windows 10)
-* .Net Framework 4.7.2 (already included in Windows 10 April 2018 Update [Version 1803] or above). Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
 
 ## Special Thanks
 
