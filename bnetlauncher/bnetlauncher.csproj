@@ -167,7 +167,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetDir)ILMerge\$(TargetFileName) g:\steam\
+    <PostBuildEvent>copy $(TargetDir)ILMerge\$(TargetFileName) d:\games\steam\
 
 del $(ProjectName)_vNext.zip
 copy /y  $(ProjectDir)Resources\gamesdb.ini  $(TargetDir)gamesdb.ini.example
