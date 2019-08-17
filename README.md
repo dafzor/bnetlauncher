@@ -154,8 +154,8 @@ Explaining what each part does:
 
 ## Special Thanks
 
-internet coder Maruf for ghost tray icon fix code 
-github Ethan-BB for the new parameters to launch games on battle.net. 
-github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectively. 
-/u/fivetwofoureight for creating and allowing me to use his icon. 
-/u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs. 
+* internet coder Maruf for ghost tray icon fix code
+* github Ethan-BB for the new parameters to launch games on battle.net
+* github RobFreiburger and iMintty for Starcraft Remastered and Destiny 2 support respectively.
+* /u/fivetwofoureight for creating and allowing me to use his icon.
+* /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
