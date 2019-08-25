@@ -78,18 +78,23 @@ namespace bnetlauncher.Clients
                 DateTime start = DateTime.Now;
                 while (DateTime.Now.Subtract(start).TotalMinutes < 1)
                 {
-                    if (Windows.IsForegroundWindowTitle("Blizzard Battle.net"))
+                    // Agressivly scans for the battle.net client window to hit the foreground
+                    foreach (var window in Process.GetProcesses())
                     {
-                        // Small pause to give time for UI to update before
-                        // sending the keypress, no wait will case it to launch
-                        // the last game opened.
-                        Thread.Sleep(500);
+                        if (window.MainWindowTitle == "Blizzard Battle.net")
+                        {
+                            Logger.Information($"Found windows for battle.net client.");
 
-                        SendKeys.SendWait("{ENTER}");
-                        return true;
+                            // Small pause to give time for UI to update before
+                            // sending the keypress, no wait will case it to launch
+                            // the last game opened.
+                            Thread.Sleep(500);
+
+                            // Force the battle.net client to the foreground.
+                            Windows.SendEnterByHandle(window.MainWindowHandle);
+                            return true;
+                        }
                     }
-
-                    Thread.Sleep(10);
                 }
 
                 Logger.Error("Failed to detect Battle.net client window in the foreground.");
