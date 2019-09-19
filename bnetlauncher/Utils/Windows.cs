@@ -9,7 +9,10 @@ namespace bnetlauncher.Utils
     {
         internal static class NativeMethods
         {
+            // Windows Event KeyDown
             public const int WM_KEYDOWN = 0x100;
+
+            // Constant for Enter Key
             public const int VK_RETURN = 0x0D;
 
             [DllImport("user32.dll")]
@@ -28,68 +31,69 @@ namespace bnetlauncher.Utils
             public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
         }
 
+        #region Unusued functions
+        //static public bool IsForegroundWindowByTitle(string title)
+        //{
+        //    IntPtr hwnd = NativeMethods.GetForegroundWindow();
 
-        static public bool IsForegroundWindowByTitle(string title)
-        {
-            IntPtr hwnd = NativeMethods.GetForegroundWindow();
+        //    int length = NativeMethods.GetWindowTextLength(hwnd);
+        //    StringBuilder windowtitle = new StringBuilder(length + 1);
+        //    int result_len = NativeMethods.GetWindowText(hwnd, windowtitle, windowtitle.Capacity);
 
-            int length = NativeMethods.GetWindowTextLength(hwnd);
-            StringBuilder windowtitle = new StringBuilder(length + 1);
-            int result_len = NativeMethods.GetWindowText(hwnd, windowtitle, windowtitle.Capacity);
+        //    if (result_len != length)
+        //    {
+        //        Logger.Warning($"Got missmatched Windows title length. {length} vs {result_len}");
+        //        return false;
+        //    }
 
-            if (result_len != length)
-            {
-                Logger.Warning($"Got missmatched Windows title length. {length} vs {result_len}");
-                return false;
-            }
+        //    Logger.Information($"Foreground Window title = '{windowtitle.ToString()}'");
+        //    return (windowtitle.ToString().Equals(title, StringComparison.OrdinalIgnoreCase));
+        //}
 
-            Logger.Information($"Foreground Window title = '{windowtitle.ToString()}'");
-            return (windowtitle.ToString().Equals(title, StringComparison.OrdinalIgnoreCase));
-        }
+        //static public bool SetForegroundWindowByTitle(string title)
+        //{
+        //    try
+        //    {
+        //        var client = Process.GetProcessesByName(title)[0];
+        //        return NativeMethods.SetForegroundWindow(client.MainWindowHandle) != 0;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Error($"Exception wile trying to bring '{title}' to the foreground.", ex);
+        //    }
 
-        static public bool SetForegroundWindowByTitle(string title)
-        {
-            try
-            {
-                var client = Process.GetProcessesByName(title)[0];
-                return NativeMethods.SetForegroundWindow(client.MainWindowHandle) != 0;
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Exception wile trying to bring '{title}' to the foreground.", ex);
-            }
+        //    return false;
+        //}
 
-            return false;
-        }
+        //static public bool SetForegroundWindowByHandle(IntPtr handle)
+        //{
+        //    if (handle != null)
+        //    {
+        //        return NativeMethods.SetForegroundWindow(handle) != 0;
+        //    }
+        //    return false;
+        //}
 
-        static public bool SetForegroundWindowByHandle(IntPtr handle)
-        {
-            if (handle != null)
-            {
-                return NativeMethods.SetForegroundWindow(handle) != 0;
-            }
-            return false;
-        }
-        
-        static public bool SendEnterByTitle(string title)
-        {
-            var windows = Process.GetProcesses();
+        //static public bool SendEnterByTitle(string title)
+        //{
+        //    var windows = Process.GetProcesses();
 
-            bool sent = false;
-            foreach (var window in windows)
-            {
-                if (window.MainWindowTitle == title)
-                {
-                    NativeMethods.SendMessage(window.MainWindowHandle,
-                        NativeMethods.WM_KEYDOWN, NativeMethods.VK_RETURN, IntPtr.Zero);
+        //    bool sent = false;
+        //    foreach (var window in windows)
+        //    {
+        //        if (window.MainWindowTitle == title)
+        //        {
+        //            NativeMethods.SendMessage(window.MainWindowHandle,
+        //                NativeMethods.WM_KEYDOWN, NativeMethods.VK_RETURN, IntPtr.Zero);
 
-                    Logger.Information($"Sending Enter to '{window.MainWindowTitle}'");
-                    sent = true;
-                }
-            }
+        //            Logger.Information($"Sending Enter to '{window.MainWindowTitle}'");
+        //            sent = true;
+        //        }
+        //    }
 
-            return sent;            
-        }
+        //    return sent;            
+        //}
+        #endregion unused functions
 
         static public void SendEnterByHandle(IntPtr handle)
         {
