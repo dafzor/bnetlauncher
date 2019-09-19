@@ -229,7 +229,7 @@ namespace bnetlauncher
                 return;
             }
 
-            Logger.Information($"Openting {Id} Window and waiting 3 seconds.");
+            Logger.Information($"Opening {Id} Window and waiting 3 seconds.");
             Process.Start(Path.Combine(InstallPath, Exe));
         }
 

@@ -26,6 +26,8 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using bnetlauncher.Utils;
+using ProtoBuf;
+using bnetlauncher.Utils.ProductDb;
 
 namespace bnetlauncher.Clients
 {
@@ -94,7 +96,6 @@ namespace bnetlauncher.Clients
             }
         }
 
-
         /// <summary>
         /// Launches a battle.net client game using it's ID.
         /// </summary>
@@ -156,7 +157,7 @@ namespace bnetlauncher.Clients
         /// otherwise only 1 is required.
         /// </summary>
         /// <returns>number of battle.net helper processes required.</returns>
-        private int GetHelperProcessCount()
+        protected int GetHelperProcessCount()
         {
             // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
             // would add a library dependency to the project so instead we'll do the hackish alternative
@@ -203,7 +204,7 @@ namespace bnetlauncher.Clients
         /// </summary>
         /// <param name="timeout">Amount of time to check if it's fully started in seconds. Default is 120s (2 minutes)</param>
         /// <returns>True if the client is fully started, false otherwise.</returns>
-        private bool WaitUntilReady(int timeout = 120)
+        protected bool WaitUntilReady(int timeout = 120)
         {
             Logger.Information("Waiting for battle.net client to be ready.");
 
@@ -247,5 +248,83 @@ namespace bnetlauncher.Clients
             Logger.Information($"Client fully running with pid:'{GetProcessId()}'");
             return true;
         }
+
+        /// <summary>
+        /// Gets the installPath for a given productCode.
+        /// 
+        /// Battle.net Agent keeps a product.db file in protoperf format containing a series
+        /// of details about the games included their install location which seem to be stored
+        /// in no ther location.
+        /// 
+        /// This function uses the product code to look for the game, best way to find it is
+        /// to create a desktop shortcut for the game, launch it and then open the path
+        /// 'C:\ProgramData\Battle.net\Setup' and check the log files for the code in the 
+        /// launch parameters.
+        /// 
+        /// </summary>
+        /// <param name="product_code">product code of the game to look for.</param>
+        /// <returns>install path if found. Empty string otherwise.</returns>
+        protected string GetProductInstallPath(string product_code)
+        {
+            string db_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                @"battle.net\Agent\product.db");
+            Logger.Information($"Opening '{db_file}'");
+
+            Database db;
+            using (var file = File.OpenRead(db_file))
+            {
+                db = Serializer.Deserialize<Database>(file);
+                foreach (ProductInstall pi in db.productInstalls)
+                {
+                    if (pi.productCode.Equals(product_code, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Logger.Information($"Found install path '{pi.Settings.installPath}'.");
+                        return pi.Settings.installPath;
+
+                    }
+                }
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Returns if the game is ready to launch.
+        /// 
+        /// File doesn't update when updating.
+        /// Only at the end, so this wont work.
+        /// 
+        /// </summary>
+        /// <param name="install_path"></param>
+        /// <returns></returns>
+        //protected bool IsGameReady(string install_path)
+        //{
+        //    string path = "";
+
+        //    try
+        //    {
+        //        path = Path.Combine(install_path, ".patch.result");
+        //        if (!File.Exists(path))
+        //        {
+        //            Logger.Error($"'{path}' doesn't exist");
+        //            return false;
+        //        }
+
+        //        string state = File.ReadAllText(path);
+        //        Logger.Information($"'{path}' = {state}");
+
+        //        // possible values:
+        //        // -1
+        //        //  0 = ok
+        //        if (state.Equals("0", StringComparison.OrdinalIgnoreCase)) {
+        //            return true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Error($"Error reading '{path}'", ex);
+        //        throw;
+        //    }
+        //    return false;
+        //}
     }
 }
