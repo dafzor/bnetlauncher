@@ -83,6 +83,8 @@ you can open the location by pasting the path into explorer or the run dialog in
 * It's not possible to automatically launch games with a specific region set. The client provides no direct
   option to do this, however a workaround can be done by creating a new game entry and the nolaunch option and
   manualy selecting the region before clicking play.
+* Battle.net client "ads" will interfere with the PTR and WoW Classic wow launch, when it happens user will
+  need to press the play button manually to continue the game launch.
 * Default launching the client trough a scheduled task may be incompatible with some setups, workaround is
   providade with `--notask` switch/option.
 * Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
