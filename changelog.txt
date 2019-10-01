@@ -1,6 +1,9 @@
 Version History
 ---------------
-2.05
+2.07
+* removed destiny 2 support
+
+2.06
 + added capability to launch ptr and classic versions of games
 * improved documentation
 * updated libraries

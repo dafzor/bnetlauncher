@@ -38,7 +38,6 @@ the game starts, otherwise it will be left running.
 |hots           | Heroes of the Storm                                   |
 |scr            | Starcraft Remastered                                  |
 |w3             | Warcraft 3: Reforged                                  |
-|dst2           | Destiny 2 (Overlay will not work!!! See notes below)  |
 |codbo4         | Call of Duty: Black Ops 4                             |
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 
@@ -50,15 +49,7 @@ the result should look something like this:
 
 ## Destiny 2
 
-**Bungie has decided to implement anti-cheat mechanisms that blocks steam overlay and others from working as expected.**
-
-See https://www.bungie.net/en/Help/Article/46101 for more information.
-If you need SteamController functionality use https://alia5.github.io/GloSC/ in combination with bnetlauncher.
-
-Destiny 2 Setup Video Guide: https://www.youtube.com/watch?v=38WKKqd9dKQ
-
-**Note:** [Destiny 2 is moving to steam](https://store.steampowered.com/app/1085660/Destiny_2/) on the 1st of October
-so bnetlauncher and workaround should no longer be required.
+**Note:** [Destiny 2 has moved to steam](https://store.steampowered.com/app/1085660/Destiny_2/) on the 1st of October.
 
 
 ## Troubleshooting
@@ -70,8 +61,6 @@ you can open the location by pasting the path into explorer or the run dialog in
 
 * Launching WoW Classic and PTR version of game depends on the client gaining focus for bnetlauncher to send a
   keypress to it so it will launch the game. Not letting the Battle.net client gain focus will break the functionality.
-* Destiny 2 will not have Steam Overlay or any associate features when using bnetlauncher. This is intended by
-  Bungie and cannot be fixed. Steam Input users can and should use https://alia5.github.io/GloSC/ to work around it.
 * Slow computers might take too long causing to bnetlauncher to think something went wrong, see aditional options
   on how to use --timeout to fix it.
 * Enabling multiple instances of battle.net client in it's options might break bnetlauncher functionality.
