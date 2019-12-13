@@ -1,5 +1,9 @@
 Version History
 ---------------
+2.08
+* Fix for WoW Classic exe change
+* Potential fix for mw not showing as playing after launch
+
 2.07
 * removed destiny 2 support
 
