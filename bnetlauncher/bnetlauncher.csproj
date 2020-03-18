@@ -171,7 +171,7 @@
 
 del $(ProjectName)_vNext.zip
 copy /y  $(ProjectDir)Resources\gamesdb.ini  $(TargetDir)gamedb.ini.example
-7z a -tzip $(ProjectName)_vNext.zip $(TargetDir)ILMerge\$(TargetFileName) $(SolutionDir)README.md $(SolutionDir)license.txt $(SolutionDir)changelog.txt $(TargetDir)gamesdb.ini.example</PostBuildEvent>
+7z a -tzip $(ProjectName)_vNext.zip $(TargetDir)ILMerge\$(TargetFileName) $(SolutionDir)README.md $(SolutionDir)license.txt $(SolutionDir)changelog.txt $(TargetDir)gamedb.ini.example</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
