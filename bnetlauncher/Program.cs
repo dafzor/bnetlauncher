@@ -577,7 +577,9 @@ namespace bnetlauncher
             string[] gamedb_files =
             {
                 Path.Combine(Application.StartupPath, "gamedb.ini"),
-                Path.Combine(Program.DataPath, "gamedb.ini")
+                Path.Combine(Application.StartupPath, "gamesdb.ini"),
+                Path.Combine(Program.DataPath, "gamedb.ini"),
+                Path.Combine(Program.DataPath, "gamesdb.ini")
             };
 
             Logger.Information("Loading gamedb files.");
