@@ -266,7 +266,7 @@ namespace bnetlauncher
             if (!selected_client.IsInstalled)
             {
                 ShowMessageAndExit($"The {selected_client.Name} client doesn't seem to be Installed.\n\n" +
-                  "Please reinstall the Battle.net Client to fix the issue\n");
+                    "Please reinstall the Battle.net Client to fix the issue\n");
             }
 
             #region Mutex Setup to enforce single bnetlancher instance
@@ -494,6 +494,7 @@ namespace bnetlauncher
             }
 
             // Finally we close the client when we're done
+            process.Dispose();
             CloseClientIfLast();
 
             Logger.Information("All operations successful, exiting");
@@ -634,10 +635,12 @@ namespace bnetlauncher
             switch (sc.Status)
             {
                 case System.ServiceProcess.ServiceControllerStatus.Running:
+                    sc.Dispose();
                     return true;
                     //break;
 
                 default:
+                    sc.Dispose();
                     return false;
                     //break;
             }

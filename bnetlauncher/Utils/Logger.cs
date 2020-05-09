@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -46,18 +47,18 @@ namespace bnetlauncher.Utils
         {
             public readonly string message;
             public readonly Exception ex;
-            public readonly string src_path;
-            public readonly string src_member;
-            public readonly int src_line;
+            public readonly string srcPath;
+            public readonly string srcMember;
+            public readonly int srcLine;
             public readonly string type;
 
-            public LogEntry(string message, Exception ex, string src_path, string src_member, int src_line, string type = "inf")
+            public LogEntry(string message, Exception ex, string srcPath, string srcMember, int srcLine, string type = "inf")
             {
                 this.message = message;
                 this.ex = ex;
-                this.src_path = src_path;
-                this.src_member = src_member;
-                this.src_line = src_line;
+                this.srcPath = srcPath;
+                this.srcMember = srcMember;
+                this.srcLine = srcLine;
                 this.type = type;
             }
         }
@@ -65,7 +66,8 @@ namespace bnetlauncher.Utils
         /// <summary>
         /// File in which the log file will be writen, one per day
         /// </summary>
-        private static readonly string log_file = Path.Combine(Program.DataPath, $"debug_{Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd")}.log");
+        private static readonly string log_file = Path.Combine(Program.DataPath,
+            $"debug_{Process.GetCurrentProcess().StartTime.ToString("yyyyMMdd", CultureInfo.InvariantCulture)}.log");
 
         /// <summary>
         /// Log Entry colection that serves as a queue for the log worker.
@@ -80,7 +82,9 @@ namespace bnetlauncher.Utils
         /// <summary>
         /// Checks which logs are enabled and starts the worker thread and hooks up the flush on exit.
         /// </summary>
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static Logger()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
             OutPutToConsole = Environment.UserInteractive;
             OutputToFile = File.Exists(Path.Combine(Program.DataPath, "enablelog")) ||
@@ -113,9 +117,9 @@ namespace bnetlauncher.Utils
         /// </summary>
         /// <param name="message">Message to write</param>
         public static void Information(string message,
-            [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
+            [CallerFilePath] string srcPath = "", [CallerMemberName] string srcMember = "", [CallerLineNumber] int srcLine = 0)
         {
-            log_queue.Add(new LogEntry(message, null, src_path, src_member, src_line, "INFO"));
+            log_queue.Add(new LogEntry(message, null, srcPath, srcMember, srcLine, "INFO"));
         }
 
         /// <summary>
@@ -124,9 +128,9 @@ namespace bnetlauncher.Utils
         /// <param name="message">Message to write</param>
         /// <param name="ex">Optional Exception object to show after the log message</param>
         public static void Warning(string message, Exception ex = null,
-            [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
+            [CallerFilePath] string srcPath = "", [CallerMemberName] string srcMember = "", [CallerLineNumber] int srcLine = 0)
         {
-            log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "WARN"));
+            log_queue.Add(new LogEntry(message, ex, srcPath, srcMember, srcLine, "WARN"));
         }
 
         /// <summary>
@@ -135,9 +139,9 @@ namespace bnetlauncher.Utils
         /// <param name="message">Message to write</param>
         /// <param name="ex">Optional Exception object to show after the log message</param>
         public static void Error(string message, Exception ex = null,
-            [CallerFilePath] string src_path = "", [CallerMemberName] string src_member = "", [CallerLineNumber] int src_line = 0)
+            [CallerFilePath] string srcPath = "", [CallerMemberName] string srcMember = "", [CallerLineNumber] int srcLine = 0)
         {
-            log_queue.Add(new LogEntry(message, ex, src_path, src_member, src_line, "ERROR"));
+            log_queue.Add(new LogEntry(message, ex, srcPath, srcMember, srcLine, "ERROR"));
         }
 
 
@@ -175,8 +179,8 @@ namespace bnetlauncher.Utils
         /// <param name="le">LogEntry to write.</param>
         private static void FileWrite(LogEntry le)
         {
-            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff")}|{Process.GetCurrentProcess().Id}|" +
-                $"{Path.GetFileNameWithoutExtension(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}|{le.message}";
+            var line = $"{DateTime.Now.ToString("HH:mm:ss.ffff", CultureInfo.InvariantCulture)}|{Process.GetCurrentProcess().Id}|" +
+                $"{Path.GetFileNameWithoutExtension(le.srcPath)}.{le.srcMember}:{le.srcLine}|{le.type}|{le.message}";
 
             while (true) // endless retry loop
             {
@@ -204,7 +208,7 @@ namespace bnetlauncher.Utils
         private static void ConsoleWrite(LogEntry le)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(DateTime.Now.ToString("HH:mm:ss.ffff"));
+            Console.Write(DateTime.Now.ToString("HH:mm:ss.ffff", CultureInfo.InvariantCulture));
 
             Console.ResetColor(); Console.Write("|");
 
@@ -226,7 +230,7 @@ namespace bnetlauncher.Utils
                     break;
             }
 
-            Console.Write($"{Path.GetFileNameWithoutExtension(le.src_path)}.{le.src_member}:{le.src_line}|{le.type}");
+            Console.Write($"{Path.GetFileNameWithoutExtension(le.srcPath)}.{le.srcMember}:{le.srcLine}|{le.type}");
 
             Console.ResetColor(); Console.Write("|");
 

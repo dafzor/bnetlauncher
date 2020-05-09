@@ -141,7 +141,7 @@ namespace bnetlauncher.Utils
             int seconds_passed = 0;
             int game_process_id = 0;
 
-            var wmiq = String.Format(
+            var wmiq = String.Format(CultureInfo.InvariantCulture,
                 "SELECT ProcessId, CreationDate FROM Win32_Process WHERE CreationDate > '{0}' AND Name LIKE '{1}%'",
                 ManagementDateTimeConverter.ToDmtfDateTime(date).ToString(CultureInfo.InvariantCulture), name);
 
