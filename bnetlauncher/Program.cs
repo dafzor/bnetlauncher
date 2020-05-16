@@ -72,6 +72,7 @@ namespace bnetlauncher
         {
             new Clients.BnetClient(),
             new Clients.BnetClient2(),
+            new Clients.EpicClient(),
 
             // DISABLED: WIP not good enough to work let alone release
             //new Clients.UplayClient()

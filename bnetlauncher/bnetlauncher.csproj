@@ -95,6 +95,7 @@
     <None Include="Resources\gamesdb.ini" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clients\EpicClient.cs" />
     <Compile Include="Clients\BnetClient2.cs" />
     <Compile Include="Clients\BnetClient.cs" />
     <Compile Include="Client.cs" />
