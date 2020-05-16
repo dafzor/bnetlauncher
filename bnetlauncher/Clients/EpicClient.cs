@@ -151,8 +151,7 @@ namespace bnetlauncher.Clients
         {
             Logger.Information("Waiting for epic client to be ready.");
 
-            int helper_required = 2;
-            int helper_count = 0;
+            bool last_helper_started = false;
 
             if (GetProcessId() == 0)
             {
@@ -161,32 +160,29 @@ namespace bnetlauncher.Clients
             }
 
             DateTime search_start_time = DateTime.Now;
-            while (helper_count < helper_required && DateTime.Now.Subtract(search_start_time).TotalSeconds < timeout)
+            while (!last_helper_started && DateTime.Now.Subtract(search_start_time).TotalSeconds < timeout)
             {
                 try
                 {
                     // Always look for the pid again because client updates or prompts might make it relaunch
                     using (var searcher = new ManagementObjectSearcher(
-                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'UnrealCEFSubProcess.exe'"))
+                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'UnrealCEFSubProcess.exe' AND CommandLine LIKE '%--renderer-client-id=4%'"))
                     {
-                        helper_count = searcher.Get().Count;
+                        last_helper_started = searcher.Get().Count > 0;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Error obtaining Helper count.", ex);
+                    Logger.Error("Error looking for last Helper.", ex);
                 }
 
                 Thread.Sleep(100);
             }
 
-            // Wait because epic is slow
-            Thread.Sleep(5000);
-
             // Did the helpers start or did we timeout?
-            if (helper_count < helper_required)
+            if (!last_helper_started)
             {
-                Logger.Error("Timeout before enough Epic Helpers started.");
+                Logger.Error("Timeout before last Epic Helpers started.");
                 return false;
             }
 
