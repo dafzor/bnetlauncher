@@ -337,6 +337,13 @@ namespace bnetlauncher
             DateTime launch_request_date = DateTime.Now;
 
 
+            // Attempts to force the application to run without admin
+            if (selected_game.Options.Contains("noadmin"))
+            {
+                Logger.Information($"Setting compatibility flag to disable UAC prompt.");
+                Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RUNASINVOKER");
+            }
+
             // If nolaunch is selected don't actually launch the game but instead shows the client window and adds 1 minute to param_timeout
             if (!selected_game.Options.Contains("nolaunch"))
             {

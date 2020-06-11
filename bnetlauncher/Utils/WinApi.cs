@@ -99,7 +99,7 @@ namespace bnetlauncher.Utils
         {
             if (handle == IntPtr.Zero)
             {
-                Logger.Error($"Givne null handle. aborting...");
+                Logger.Error($"Given null handle. aborting...");
                 return;
             }
 
