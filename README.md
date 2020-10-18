@@ -41,6 +41,7 @@ the game starts, otherwise it will be left running.
 |codbo4         | Call of Duty: Black Ops 4                             |
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
+|codbocw        | Call of Duty: Back Ops Cold War                       |
 
 the result should look something like this:
 
@@ -129,12 +130,14 @@ Explaining what each part does:
 
 * `[codbo4]`  name used with bnetlauncher that identifies the settings to use (ex: `bnetlauncher.exe codbo4`)
 * `name=Call of Duty: Black Ops 4` a friendly name for the game used for error and help messages
-* `client=battlenet` the client module used to launch the game, currently there's battlenet and battlenet2,
-   difference bettwen the two is that battlenet2 can launch ptr/classic version of games but could be less reliable then battlenet.
-* `cmd=VIPR` command to launch the game, for the battlenet it's a special id that allows direct launching of the game, with battlenet2
-  it's the game's productCode. Those values can be discovered by looking at logs in different locations:
+* `client=battlenet` the client module used to launch the game, currently there's battlenet, battlenet2 and epic,
+   difference bettwen the two battlenet is that battlenet2 can launch ptr/classic version of games but could be less reliable then battlenet.
+* `cmd=VIPR` command to launch the game, for the battlenet it's a special id that allows direct launching of the game, be aware that this value is
+  case sensitive! With battlenet2 it's the game's productCode. Those values can be discovered by looking at logs in different locations:
   * for battlenet `'%LOCALAPPDATA%\Battle.net\Logs\battle.net*.log'`
   * for battlenet2 `'C:\ProgramData\Battle.net\Setup\<game>\*.log'`
+  In the case of epic, just create a desktop shortcut and extract the id from the properties, it will be something like:
+  * `com.epicgames.launcher://apps/<id will be here>?action=launch&silent=true` 
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
     to support 32 and 64 bit builds of the game.
 * `options=noargs,waitforexit` list of comma separated options, currently supported:
@@ -143,6 +146,8 @@ Explaining what each part does:
   * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s. This can be 
     used launch a game and give time to select a region or other unsuported options.
   * `notask` doesn't start the client trough a scheduled task, this will make the steam overlay also apply to the battle.net client
+  * `noadmin` tries to apply compatibility flags to the game to avoid calling the UAC, this is an untested hack that can break the game
+  **do not use unless you know what you're doing**.
 
 ## Special Thanks
 
