@@ -5,7 +5,7 @@ using System.Text;
 
 namespace bnetlauncher.Utils
 {
-    public static class Windows
+    public static class WinApi
     {
         internal static class NativeMethods
         {
@@ -28,7 +28,7 @@ namespace bnetlauncher.Utils
             public static extern int SetForegroundWindow(IntPtr point);
 
             [DllImport("user32.dll", CharSet = CharSet.Auto)]
-            public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, IntPtr lParam);
+            public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
         }
 
         #region Unusued functions
@@ -104,7 +104,16 @@ namespace bnetlauncher.Utils
             }
 
             Logger.Information("Sending enter key to window");
-            NativeMethods.SendMessage(handle, NativeMethods.WM_KEYDOWN, NativeMethods.VK_RETURN, IntPtr.Zero);
+            NativeMethods.SendMessage(handle, NativeMethods.WM_KEYDOWN, ToPtr(NativeMethods.VK_RETURN), IntPtr.Zero);
+        }
+
+        public static IntPtr ToPtr(int val)
+        {
+            IntPtr ptr = Marshal.AllocHGlobal(sizeof(int));
+
+            byte[] byteVal = BitConverter.GetBytes(val);
+            Marshal.Copy(byteVal, 0, ptr, byteVal.Length);
+            return ptr;
         }
     }
 }

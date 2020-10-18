@@ -91,7 +91,7 @@ namespace bnetlauncher.Clients
                             Thread.Sleep(500);
 
                             // Force the battle.net client to the foreground.
-                            Windows.SendEnterByHandle(window.MainWindowHandle);
+                            WinApi.SendEnterByHandle(window.MainWindowHandle);
                             return true;
                         }
                     }

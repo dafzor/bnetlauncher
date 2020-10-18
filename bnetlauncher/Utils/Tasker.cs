@@ -37,17 +37,17 @@ namespace bnetlauncher.Utils
     /// This allows the client to start unattached to steam (no overlay)
     /// allowing it to be left running without affecting ingame status in steam.
     /// </summary>
-    public static class Tasks
+    public static class Tasker
     {
-        private static TaskService service;
+        private static TaskService service = new TaskService();
         private static TaskFolder folder;
 
-        private static FileVersionInfo VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+        private static readonly FileVersionInfo VersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
 
-        static Tasks()
+#pragma warning disable CA1810 // Initialize reference type static fields inline
+        static Tasker()
+#pragma warning restore CA1810 // Initialize reference type static fields inline
         {
-            service = new TaskService();
-
             // make sure the folder exists and creates it if it doesn't
             if (null == (folder = service.GetFolder(VersionInfo.FileDescription)))
             {
@@ -135,11 +135,13 @@ namespace bnetlauncher.Utils
         {
             if (!Exists(name))
             {
-                if (null == Create(name, cmd))
+                var task = Create(name, cmd);
+                if (null == task)
                 {
                     Logger.Warning($"Failed to create task for {name}.");
                     return false;
                 }
+                task.Dispose();
             }
 
             Run(name);

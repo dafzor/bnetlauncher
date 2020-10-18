@@ -131,7 +131,7 @@ namespace bnetlauncher.Clients
             else
             {
                 Logger.Information("Starting the client trough task.");
-                if (!Tasks.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
+                if (!Tasker.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
                 {
                     Logger.Warning("Failed to start client trough task.");
                     Process.Start(Path.Combine(InstallPath, Exe));
@@ -264,7 +264,7 @@ namespace bnetlauncher.Clients
         /// </summary>
         /// <param name="product_code">product code of the game to look for.</param>
         /// <returns>install path if found. Empty string otherwise.</returns>
-        protected string GetProductInstallPath(string product_code)
+        protected static string GetProductInstallPath(string product_code)
         {
             string db_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 @"battle.net\Agent\product.db");

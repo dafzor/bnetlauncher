@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = none
+
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = silent
+
+# CA1308: Normalize strings to uppercase
+dotnet_diagnostic.CA1308.severity = silent
+
+# CA1822: Member 'AppendPid' does not access instance data and can be marked as static
+dotnet_diagnostic.CA1822.severity = silent

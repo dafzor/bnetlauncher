@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Management;
 using bnetlauncher.Utils;
@@ -130,11 +131,11 @@ namespace bnetlauncher
                         // Trying to use a client running under a differnt user usually causes
                         // a second client instance to start.
                         var args = new string[] { string.Empty, string.Empty };
-                        if (0 == Convert.ToInt32(result.InvokeMethod("GetOwner", args)))
+                        if (0 == Convert.ToInt32(result.InvokeMethod("GetOwner", args), CultureInfo.InvariantCulture))
                         {
                             if ($"{args[1]}\\{args[0]}" == current_user)
                             {
-                                return Convert.ToInt32(result["ProcessId"]);
+                                return Convert.ToInt32(result["ProcessId"], CultureInfo.InvariantCulture);
                             }
                         }
                     }
