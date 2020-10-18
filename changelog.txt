@@ -1,5 +1,9 @@
 Version History
 ---------------
+2.10
+* Added Call of Duty: Modern Warfare 2 Campaign Remastered support
+* Added experimental support for some games using epic client.
+
 2.09
 * Changed gamesdb.ini.example to gamedb.ini.example
 * Also tries to load gamesdb.ini

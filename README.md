@@ -40,6 +40,7 @@ the game starts, otherwise it will be left running.
 |w3             | Warcraft 3: Reforged                                  |
 |codbo4         | Call of Duty: Black Ops 4                             |
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
+|codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
 
 the result should look something like this:
 

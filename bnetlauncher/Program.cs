@@ -72,6 +72,7 @@ namespace bnetlauncher
         {
             new Clients.BnetClient(),
             new Clients.BnetClient2(),
+            new Clients.EpicClient(),
 
             // DISABLED: WIP not good enough to work let alone release
             //new Clients.UplayClient()
@@ -335,6 +336,13 @@ namespace bnetlauncher
             // don't mess with games that might already be running.
             DateTime launch_request_date = DateTime.Now;
 
+
+            // Attempts to force the application to run without admin
+            if (selected_game.Options.Contains("noadmin"))
+            {
+                Logger.Information($"Setting compatibility flag to disable UAC prompt.");
+                Environment.SetEnvironmentVariable("__COMPAT_LAYER", "RUNASINVOKER");
+            }
 
             // If nolaunch is selected don't actually launch the game but instead shows the client window and adds 1 minute to param_timeout
             if (!selected_game.Options.Contains("nolaunch"))
