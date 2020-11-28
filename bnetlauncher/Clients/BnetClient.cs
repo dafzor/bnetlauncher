@@ -159,41 +159,12 @@ namespace bnetlauncher.Clients
         /// <returns>number of battle.net helper processes required.</returns>
         protected int GetHelperProcessCount()
         {
-            // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
-            // would add a library dependency to the project so instead we'll do the hackish alternative
-            // of just regexing the config file.
-            try
-            {
-                // Location of the battle.net client configuration file in JSON
-                var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Battle.net", "Battle.net.config");
-
-                // Read the config file into a string
-                var bnet_config = File.ReadAllText(bnet_config_file);
-
-                // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
-                // if it's ON then the client will have at least 2 Battle.net Helper running.
-                var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
-
-                if (match.Success)
-                {
-                    if (match.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return 2;
-                    }
-                    else
-                    {
-                        // Hardware acceleration is off, so no GPU battle.net helper
-                        return 1;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Error reading '{Id}' config file.", ex);
-            }
-
-            return 2;
+            // Since WoW shadowlands launch the non beta Battle.net Client requires the UI to fully
+            // load before accepting commands, and disabling GPU acelaration no longers reduces the
+            // thread count by one, so this value is now a constant 3, function remains in case this
+            // changes again in the future.
+            // NOTE: See code before tag 2.12 for previous function if needed.
+            return 3;
         }
 
         /// <summary>
