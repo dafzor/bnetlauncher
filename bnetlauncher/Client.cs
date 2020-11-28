@@ -174,7 +174,7 @@ namespace bnetlauncher
         /// </summary>
         /// <param name="create_lockfile">Flat to create lockfile to track if bnetlauncher started the client.</param>
         /// <returns>True if the process started.</returns>
-        public virtual bool Start(bool create_lockfile = true, bool no_task = false)
+        public virtual bool Start(bool create_lockfile = true, bool no_task = false, bool elevated = false)
         {
             var client = Process.Start(Path.Combine(InstallPath, Exe));
 

@@ -56,17 +56,23 @@ namespace bnetlauncher.Utils
             }
         }
 
-        public static Task Create(string name, string cmd)
+        public static Task Create(string name, string cmd, bool elevated = false)
         {
             TaskDefinition td = service.NewTask();
 
             td.Principal.LogonType = TaskLogonType.InteractiveToken;
+
+            if (elevated) {
+                td.Principal.RunLevel = TaskRunLevel.Highest;
+            }
+            
             td.RegistrationInfo.Description = $"{VersionInfo.FileMajorPart}.{VersionInfo.FileMinorPart}";
 
             td.Settings.AllowDemandStart = true;
             td.Settings.IdleSettings.StopOnIdleEnd = false;
             td.Settings.DisallowStartIfOnBatteries = false;
             td.Settings.StopIfGoingOnBatteries = false;
+
 
             td.Actions.Add(new ExecAction(cmd));
 
@@ -131,11 +137,11 @@ namespace bnetlauncher.Utils
             return false;
         }
 
-        public static bool CreateAndRun(string name, string cmd)
+        public static bool CreateAndRun(string name, string cmd, bool elevated = false)
         {
             if (!Exists(name))
             {
-                var task = Create(name, cmd);
+                var task = Create(name, cmd, elevated);
                 if (null == task)
                 {
                     Logger.Warning($"Failed to create task for {name}.");

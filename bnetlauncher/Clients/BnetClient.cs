@@ -28,6 +28,7 @@ using Microsoft.Win32;
 using bnetlauncher.Utils;
 using ProtoBuf;
 using bnetlauncher.Utils.ProductDb;
+using System.Net.Sockets;
 
 namespace bnetlauncher.Clients
 {
@@ -118,7 +119,7 @@ namespace bnetlauncher.Clients
         /// Starts the battle.net client and returns WaitUntilReady result.
         /// </summary>
         /// <returns>The result of the WaitUntilReady call.</returns>
-        public override bool Start(bool create_lockfile = true, bool no_task = false)
+        public override bool Start(bool create_lockfile = true, bool no_task = false, bool elevated = false)
         {
             // Just launches the client which is required for it to interpret launch commands properly.
             Logger.Information($"Starting '{Id}' client.");
@@ -126,15 +127,19 @@ namespace bnetlauncher.Clients
             if (no_task)
             {
                 Logger.Information("Starting the client directly.");
-                Process.Start(Path.Combine(InstallPath, Exe));
+                var start_info = new ProcessStartInfo(Path.Combine(InstallPath, Exe));
+                if (elevated) { start_info.Verb = "runas"; }
+                Process.Start(start_info);
             }
             else
             {
                 Logger.Information("Starting the client trough task.");
-                if (!Tasker.CreateAndRun(Id, Path.Combine(InstallPath, Exe)))
+                var task_name = Id + (elevated ? "_admin" : "");
+                      
+                if (!Tasker.CreateAndRun(task_name, Path.Combine(InstallPath, Exe), elevated))
                 {
                     Logger.Warning("Failed to start client trough task.");
-                    Process.Start(Path.Combine(InstallPath, Exe));
+                    Start(create_lockfile, true, elevated);
                 }
             }
 
@@ -159,41 +164,43 @@ namespace bnetlauncher.Clients
         /// <returns>number of battle.net helper processes required.</returns>
         protected int GetHelperProcessCount()
         {
-            // Ideally I'd use a JSON library and properly parse the battle.net config file, but that
-            // would add a library dependency to the project so instead we'll do the hackish alternative
-            // of just regexing the config file.
-            try
-            {
-                // Location of the battle.net client configuration file in JSON
-                var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "Battle.net", "Battle.net.config");
+            return 3;
 
-                // Read the config file into a string
-                var bnet_config = File.ReadAllText(bnet_config_file);
+            //// Ideally I'd use a JSON library and properly parse the battle.net config file, but that
+            //// would add a library dependency to the project so instead we'll do the hackish alternative
+            //// of just regexing the config file.
+            //try
+            //{
+            //    // Location of the battle.net client configuration file in JSON
+            //    var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            //        "Battle.net", "Battle.net.config");
 
-                // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
-                // if it's ON then the client will have at least 2 Battle.net Helper running.
-                var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
+            //    // Read the config file into a string
+            //    var bnet_config = File.ReadAllText(bnet_config_file);
 
-                if (match.Success)
-                {
-                    if (match.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return 2;
-                    }
-                    else
-                    {
-                        // Hardware acceleration is off, so no GPU battle.net helper
-                        return 1;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Error reading '{Id}' config file.", ex);
-            }
+            //    // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
+            //    // if it's ON then the client will have at least 2 Battle.net Helper running.
+            //    var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
 
-            return 2;
+            //    if (match.Success)
+            //    {
+            //        if (match.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
+            //        {
+            //            return 2;
+            //        }
+            //        else
+            //        {
+            //            // Hardware acceleration is off, so no GPU battle.net helper
+            //            return 1;
+            //        }
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Logger.Error($"Error reading '{Id}' config file.", ex);
+            //}
+
+            //return 2;
         }
 
         /// <summary>

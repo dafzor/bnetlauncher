@@ -319,7 +319,10 @@ namespace bnetlauncher
             if (!selected_client.IsRunning)
             {
                 // Start the client
-                if (!selected_client.Start(!param_leaveopen, (param_notask || selected_game.Options.Contains("notask"))))
+
+                if (!selected_client.Start(!param_leaveopen,
+                    (param_notask || selected_game.Options.Contains("notask")),
+                    selected_game.Options.Contains("admin")))
                 {
                     Logger.Information($"Client '{selected_client.Name}' not running and/or failed to start it.");
                     ShowMessageAndExit($"Couldn't find the {selected_client.Name} running and failed to start it.\nExiting application",
