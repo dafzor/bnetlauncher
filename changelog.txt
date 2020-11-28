@@ -1,5 +1,13 @@
 Version History
 ---------------
+2.12
+* Fix for Battle.net client needing to have UI loaded before responding to game launch commands
+
+2.11
+* Added Call of Duty: Modern Warfare 2 Campaign Remastered
+* Added Call of Duty: Back Ops Cold War
+* Experimental Epic game support
+
 2.10
 * Added Call of Duty: Modern Warfare 2 Campaign Remastered support
 * Added experimental support for some games using epic client.
