@@ -106,14 +106,5 @@ namespace bnetlauncher.Utils
             Logger.Information("Sending enter key to window");
             NativeMethods.SendMessage(handle, NativeMethods.WM_KEYDOWN, ToPtr(NativeMethods.VK_RETURN), IntPtr.Zero);
         }
-
-        public static IntPtr ToPtr(int val)
-        {
-            IntPtr ptr = Marshal.AllocHGlobal(sizeof(int));
-
-            byte[] byteVal = BitConverter.GetBytes(val);
-            Marshal.Copy(byteVal, 0, ptr, byteVal.Length);
-            return ptr;
-        }
     }
 }
