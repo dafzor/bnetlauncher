@@ -1,7 +1,8 @@
 Version History
 ---------------
 2.12
-* Fix for Battle.net client needing to have UI loaded before responding to game launch commands
+* Fixed issue were it would crash battle.net client launching alternate games
+* Fixed issue were bnetlauncher would fail to launch the game after starting battle.net client
 
 2.11
 * Added Call of Duty: Modern Warfare 2 Campaign Remastered
