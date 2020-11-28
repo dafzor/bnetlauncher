@@ -104,7 +104,7 @@ namespace bnetlauncher.Utils
             }
 
             Logger.Information("Sending enter key to window");
-            NativeMethods.SendMessage(handle, NativeMethods.WM_KEYDOWN, ToPtr(NativeMethods.VK_RETURN), IntPtr.Zero);
+            NativeMethods.SendMessage(handle, NativeMethods.WM_KEYDOWN, (IntPtr)NativeMethods.VK_RETURN, IntPtr.Zero);
         }
     }
 }
