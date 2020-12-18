@@ -81,6 +81,7 @@ you can open the location by pasting the path into explorer or the run dialog in
 * Starting multiple copies of Startcraft Remastered may cause bnetlauncher to show an error since the game only allows
   one instance to be run at the same time.
 * There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
+* Call of Duty: Cold War might work better when using `--timeout 10` for some users.
 
 ## Aditional options
 

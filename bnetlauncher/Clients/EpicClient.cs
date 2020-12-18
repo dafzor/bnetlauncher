@@ -168,7 +168,7 @@ namespace bnetlauncher.Clients
                     // Epic launches a series of helper CEF render processes giving them a sequencial id,
                     // only after the 4th one launches is the client actually ready to take commands.
                     using (var searcher = new ManagementObjectSearcher(
-                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'UnrealCEFSubProcess.exe' AND CommandLine LIKE '%--renderer-client-id=4%'"))
+                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'EpicWebHelper.exe' AND CommandLine LIKE '%--renderer-client-id=4%'"))
                     {
                         last_helper_started = searcher.Get().Count > 0;
                     }
