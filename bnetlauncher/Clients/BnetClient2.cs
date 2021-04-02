@@ -83,15 +83,15 @@ namespace bnetlauncher.Clients
                     {
                         if (proc.MainWindowTitle == "Battle.net")
                         {
-                            Logger.Information($"Found windows for battle.net client.");
+                            Logger.Information("Found windows for battle.net client.");
 
                             // Small pause to give time for UI to update before
                             // sending the keypress, no wait will case it to launch
                             // the last game opened.
                             Thread.Sleep(500);
 
-
-                            var button_color = Color.FromArgb(255, 20, 142, 255);
+                            // To get this color check debug bmp in Program.DataPath
+                            var button_color = Color.FromArgb(255, 0, 116, 224);
                             while (proc.MainWindowHandle == IntPtr.Zero)
                             {
                                 Thread.Sleep(500);
@@ -108,7 +108,7 @@ namespace bnetlauncher.Clients
                                 }
                                 Thread.Sleep(100);
                             }
-                            _ = WinApi.NativeMethods.SetForegroundWindow(proc.MainWindowHandle);
+                            Logger.Information("Sending Mouse click at window");
                             WinApi.ClickWithinWindow(proc.MainWindowHandle, button_location);
                             return true;
                         }

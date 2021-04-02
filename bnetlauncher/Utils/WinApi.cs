@@ -51,6 +51,13 @@ namespace bnetlauncher.Utils
                 public IntPtr ExtraInfo;
             }
 
+            public enum PROCESS_DPI_AWARENESS
+            {
+                Process_DPI_Unaware = 0,
+                Process_System_DPI_Aware = 1,
+                Process_Per_Monitor_DPI_Aware = 2
+            }
+
 #pragma warning restore 649
 
             [DllImport("user32.dll")]
@@ -68,8 +75,9 @@ namespace bnetlauncher.Utils
             [DllImport("user32.dll", CharSet = CharSet.Auto)]
             public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll")]
-            public static extern bool SetProcessDPIAware();
+            [DllImport("SHCore.dll", SetLastError = true)]
+            public static extern bool SetProcessDpiAwareness(PROCESS_DPI_AWARENESS awareness);
+
 
             [DllImport("user32.dll")]
             public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
@@ -169,10 +177,13 @@ namespace bnetlauncher.Utils
                 Logger.Error($"{nameof(proc)} is null.");
                 throw new ArgumentNullException(nameof(proc));
             }
-            NativeMethods.SetProcessDPIAware();
+
+            // Doesn't seem to be needed
+            //NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
 
             NativeMethods.RECT wnd;
             NativeMethods.GetWindowRect(new HandleRef(proc, proc.MainWindowHandle), out wnd);
+            Logger.Information($"Found window at position: {wnd.Top},{wnd.Left}.");
 
             var bmp = new Bitmap(wnd.Right - wnd.Left, wnd.Bottom - wnd.Top);  // content only
 
@@ -186,17 +197,16 @@ namespace bnetlauncher.Utils
         }
 
         public static Point FindColorInProcessMainWindow(Process proc, Color color,
-            int xDivider = 3, int yDivider = 3)
+            int xDivider = 4, int yDivider = 4)
         {
             var bmp = CaptureProcessMainWindow(proc);
-            bmp.Save(Path.Combine(Path.GetTempPath(), $"{proc.ProcessName}_window_capture.bmp"));
+            bmp.Save(Path.Combine(Program.DataPath, $"{proc.ProcessName}_window_capture.bmp"));
 
-            for (int y = bmp.Height - 1; y > (bmp.Height / yDivider); y--)
+            for (int y = bmp.Height - 1; y > (bmp.Height - (bmp.Height / yDivider)); y--)
             {
-                for (int x = bmp.Width - 1; x > (bmp.Width / xDivider); x--)
+                for (int x = 0; x < (bmp.Width / xDivider); x++)
                 {
                     var pixel = bmp.GetPixel(x, y);
-                    Logger.Information($"Comparing {pixel} with {color}");
                     if (pixel == color)
                     {
                         bmp.Dispose();
@@ -206,6 +216,7 @@ namespace bnetlauncher.Utils
                 }
             }
             bmp.Dispose();
+            Logger.Warning("Couldn't find color in Window.");
             return Point.Empty;
         }
 
@@ -229,6 +240,7 @@ namespace bnetlauncher.Utils
             inputMouseUp.Data.Mouse.Flags = 0x0004; /// left button up
 
             var inputs = new NativeMethods.INPUT[] { inputMouseDown, inputMouseUp };
+            _ = NativeMethods.SetForegroundWindow(wndHandle);
             _ = NativeMethods.SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(NativeMethods.INPUT)));
 
             /// return mouse 
