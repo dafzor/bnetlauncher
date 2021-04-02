@@ -26,22 +26,23 @@ the game starts, otherwise it will be left running.
 
 | code          | game                                                  |
 | ------------- | ----------------------------------------------------- |
-|wow            | World of Warcraft                                     |
-|wowclassic     | World of Warcraft Classic                             |
-|wowptr         | World of Warcraft Public Test Realm                   |
+|codbo4         | Call of Duty: Black Ops 4                             |
+|codbocw        | Call of Duty: Black Ops Cold War                      |
+|codmw2019      | Call of Duty: Modern Warfare (2019)                   |
+|codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
+|cb4            | Crash Bandicoot 4: It's About Time                    |
 |d3             | Diablo 3                                              |
 |d3ptr          | Diablo 3 Public Test Realm                            |
 |hs             | Heartstone                                            |
+|hots           | Heroes of the Storm                                   |
 |ow             | Overwatch                                             |
 |owptr          | Overwatch Public Test Realm                           |
-|sc2            | Starcraft 2                                           |
-|hots           | Heroes of the Storm                                   |
 |scr            | Starcraft Remastered                                  |
+|sc2            | Starcraft 2                                           |
 |w3             | Warcraft 3: Reforged                                  |
-|codbo4         | Call of Duty: Black Ops 4                             |
-|codmw2019      | Call of Duty: Modern Warfare (2019)                   |
-|codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
-|codbocw        | Call of Duty: Back Ops Cold War                       |
+|wow            | World of Warcraft                                     |
+|wowclassic     | World of Warcraft Classic                             |
+|wowptr         | World of Warcraft Public Test Realm                   |
 
 the result should look something like this:
 
