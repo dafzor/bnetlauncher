@@ -7,7 +7,7 @@ Official page http://madalien.com/stuff/bnetlauncher/
 ## Purpose
 
 This application is intended to facilitate the launch of battle.net games from steam with overlay
-with minimal/no interaction with the battle.net client while still being automaticly logged in.
+with minimal/no interaction with the battle.net client while still being automatically logged in.
 
 ## Requirements
 
@@ -55,8 +55,8 @@ not running bnetlauncher will close it, if it's running it will leave it running
 With the release of the the new client in 2021 it's no longer possible to launch PTR and Classic version
 of games without manual interaction.
 
-This was due to default enter key press action no longer being to launch the game.
-
+If you're brave enough there's an untested [experimental 2.15 version](https://github.com/dafzor/bnetlauncher/releases/tag/v2.15exp)
+that tries to restore that functionality.
 
 ## Troubleshooting
 
@@ -87,7 +87,7 @@ you can open the location by pasting the path into explorer or the run dialog in
 * There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 * Call of Duty: Cold War might work better when using `--timeout 10` for some users.
 
-## Aditional options
+## Additional options
 
 There's also the following additional options provided by command line switches:
 
@@ -96,7 +96,6 @@ There's also the following additional options provided by command line switches:
   to the client and consider you playing the game until the client exists)
 * `--leaveopen, -l` leaves the client open after launcher the game. Warning: If combined with `--notask` option it will show you as playing on steam until
   you close the client.
-
 
 ## Uninstalling
 
@@ -163,3 +162,4 @@ Explaining what each part does:
 * /u/fivetwofoureight for creating and allowing me to use his icon.
 * /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
 * github jbzdarkid for fixing some typos in the documentation.
+* github jacobmix for crash bandicoot 4 addition
