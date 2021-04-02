@@ -49,7 +49,7 @@ Version History
 
 2.00
 * Release of version 1.99 to replace v1.22 which has some current bugs
-* Should fix intermitent "game not found errors"
+* Should fix intermittent "game not found errors"
 
 1.99 (beta)
 * Major reorganization of the code
@@ -59,7 +59,7 @@ Version History
 + clients are now started using scheduled tasks so steam overlay wont affect them
 + added -l option to leave client open if bnetlauncher started it
 + no longer leaves tray icon when closing clients (courtesy of Maruf) 
-+ new logger system with more consistent formating making it easy to view in proper apps
++ new logger system with more consistent formatting making it easy to view in proper apps
 + new logger console when running debug builds
 
 1.22

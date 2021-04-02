@@ -7,14 +7,11 @@ Official page http://madalien.com/stuff/bnetlauncher/
 ## Purpose
 
 This application is intended to facilitate the launch of battle.net games from steam with overlay
-while still being automatically logged in by the battle.net client.
-
-Note: If the Battle.net client isn't running when starting the game it will be closed as soon as
-the game starts, otherwise it will be left running.
+with minimal/no interaction with the battle.net client while still being automatically logged in.
 
 ## Requirements
 
-* Windows 7 SP1 or above (Only tested on Windows 10)
+* Windows 7 SP1 or above (Only tested on current release of Windows 10)
 * .Net Framework 4.7.2 (included in Windows 10 April 2018 Update [Version 1803] or above).
   Download link: https://www.microsoft.com/net/download/dotnet-framework-runtime
 
@@ -44,16 +41,22 @@ the game starts, otherwise it will be left running.
 |wowclassic     | World of Warcraft Classic                             |
 |wowptr         | World of Warcraft Public Test Realm                   |
 
-the result should look something like this:
+the result should look something like the example or screenshot bellow:
 
 `"G:\Steam\bnetlauncher.exe" ow`
 
 ![Example Screenshot](https://madalien.com/media/uploads/2018/10/steam_parameters_bnetlauncher.png)
 
-## Destiny 2
+Note: bnetlauncher default behavior is to retain the state of the client, so if the client is 
+not running bnetlauncher will close it, if it's running it will leave it running.
 
-**Note:** [Destiny 2 has moved to steam](https://store.steampowered.com/app/1085660/Destiny_2/) on the 1st of October, 2019.
+## Public Test Realm and World of Warcraft Classic
 
+With the release of the the new client in 2021 it's no longer possible to launch PTR and Classic version
+of games without manual interaction.
+
+If you're brave enough there's an untested [experimental 2.15 version](https://github.com/dafzor/bnetlauncher/releases/tag/v2.15exp)
+that tries to restore that functionality.
 
 ## Troubleshooting
 
@@ -62,8 +65,8 @@ you can open the location by pasting the path into explorer or the run dialog in
 
 ## Known Issues
 
-* Launching WoW Classic and PTR version of game depends on the client gaining focus for bnetlauncher to send a
-  keypress to it so it will launch the game. Not letting the Battle.net client gain focus will break the functionality.
+* Launching WoW Classic and PTR version of game was dependant on enter key press defaulting to play button.
+  As of latest client version, this is no longer the case, so launching those versions requires a key press.
 * Slow computers might take too long causing to bnetlauncher to think something went wrong, see aditional options
   on how to use --timeout to fix it.
 * Enabling multiple instances of battle.net client in it's options might break bnetlauncher functionality.
@@ -84,29 +87,28 @@ you can open the location by pasting the path into explorer or the run dialog in
 * There's no built in routine to clean up the log files if they pile up (logging is disabled by default)
 * Call of Duty: Cold War might work better when using `--timeout 10` for some users.
 
-## Aditional options
+## Additional options
 
 There's also the following additional options provided by command line switches:
 
 * `--timeout <seconds>, -t <seconds>` changes how many seconds it tries to look for the game before giving an error (15 seconds by default).
 * `--notask, -n` starts the launcher directly instead of using task scheduler (starting the client directly will cause steam to apply the overlay
   to the client and consider you playing the game until the client exists)
-* `--leaveopen, -l` leaves the client open after launcher the game. If combined with `--notask` option it will show you as playing on steam until
+* `--leaveopen, -l` leaves the client open after launcher the game. Warning: If combined with `--notask` option it will show you as playing on steam until
   you close the client.
-
 
 ## Uninstalling
 
 To remove all traces of bnetlauncher from your system:
 
-* Search for 'taskschd.msc' in the start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the client
+* Search for 'taskschd.msc' in the start menu and open it, expand library and delete bnetlauncher folder to remove the tasks used to start the clients
 * Search for `%localappdata%\madalien.com` in start menu and open the folder, delete bnetlauncher folder to remove any created logs and gamedb.ini files
 
-## Advanced: Adding new blizzard games or custom cases
+## Advanced: Adding new games or custom cases
 
 From v2.00 onward bnetlauncher uses a internal gamedb.ini to control how games are launched.
 
-**Disclaimer:** This option is there to make it easier to add new games as blizzard releases them or
+**Disclaimer:** This option is there to make it easier to add new games or
 support "exotic" use cases. It's not intended or needed for regular users.
 
 To customize the configurations create a gamedb.ini file in:
@@ -114,9 +116,9 @@ To customize the configurations create a gamedb.ini file in:
 * `%localappdata%\madalien.com\bnetlauncher\gamedb.ini`
 * the directory where the bnetlauncher executable is located.
 
-A `gamesdb.ini.sample` is distributed with bnetlauncher containing a copy of the built in shortcuts.
+A `gamesdb.ini.sample` is distributed with bnetlauncher containing a copy of the built in configuration.
 
-**Important:** The defaults are not changeable. bnetlauncher will always override them with it's internal gamesdb.ini file.
+**Important:** The defaults entries are not changeable. bnetlauncher will always override any changed value with it's internal gamesdb.
 However it is possible to create a new entry using a different name to use custom options.
 
 Example entry:
@@ -152,7 +154,7 @@ Explaining what each part does:
   * `noadmin` tries to apply compatibility flags to the game to avoid calling the UAC, this is an untested hack that can break the game
   **do not use unless you know what you're doing**.
 
-## Special Thanks
+## Contributors
 
 * internet coder Maruf for ghost tray icon fix code
 * github Ethan-BB for the new parameters to launch games on battle.net
@@ -160,3 +162,4 @@ Explaining what each part does:
 * /u/fivetwofoureight for creating and allowing me to use his icon.
 * /u/malecden, Maverick, /u/sumphatguy and others for their help pointing out bugs.
 * github jbzdarkid for fixing some typos in the documentation.
+* github jacobmix for crash bandicoot 4 addition
