@@ -30,7 +30,7 @@ the game starts, otherwise it will be left running.
 |codbocw        | Call of Duty: Black Ops Cold War                      |
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
-|wlby           | Crash Bandicoot 4: It's About Time                    |
+|cb4            | Crash Bandicoot 4: It's About Time                    |
 |d3             | Diablo 3                                              |
 |d3ptr          | Diablo 3 Public Test Realm                            |
 |hs             | Heartstone                                            |
