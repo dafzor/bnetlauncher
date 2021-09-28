@@ -1,0 +1,29 @@
+name: Build bnetlauncher
+ 
+on: [push]
+ 
+jobs:
+  build: 
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v1
+
+    - name: Setup MSBuild Path
+      uses: warrenbuckley/Setup-MSBuild@v1
+       
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.2
+     
+    - name: Restore NuGet Packages
+      run: nuget restore bnetlauncher.sln
+ 
+    - name: Build and Publish
+      run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
+ 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: bnetlauncher
+        path: bin\Release\Publish
