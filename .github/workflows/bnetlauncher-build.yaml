@@ -12,18 +12,28 @@ jobs:
 
     - name: Setup MSBuild Path
       uses: microsoft/setup-msbuild@v1.0.3
-       
+
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1
-     
+
     - name: Restore NuGet Packages
       run: nuget restore bnetlauncher.sln
- 
+
     - name: Build and Publish
       run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
- 
+
+    - name: Copy gamesdb.ini as example
+      uses: canastro/copy-action@0.0.2
+      with:
+        source: bnetlauncher\Resources\gamesdb.ini
+        target: gamesdb.ini.example
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: bnetlauncher
-        path: bin\Release\Publish
+        path: |
+          bnetlauncher\bin\Release\ILMerge\bnetlauncher.exe
+          README.md
+          changelog.txt
+          license.txt
