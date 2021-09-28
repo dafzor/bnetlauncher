@@ -220,6 +220,46 @@ namespace bnetlauncher.Utils
             return Point.Empty;
         }
 
+        // reference: https://stackoverflow.com/questions/50380955/c-how-to-get-the-color-of-specific-area-inside-an-image/50387901
+        public static Color GetDominantColor(this Bitmap bitmap, Rectangle area)
+        {
+            if (null == bitmap)
+            {
+                Logger.Error("null bitmap");
+                return Color.Black;
+            }
+
+            // Make sure to stay in bounds
+            int areaWidth = Math.Min(bitmap.Width, (area.X + area.Width));
+            int areaHeight = Math.Min(bitmap.Height, (area.Y + area.Height));
+
+            //Used for tally
+            int r = 0;
+            int g = 0;
+            int b = 0;
+            int totalPixels = 0;
+
+            for (int x = area.X; x < areaWidth; x++)
+            {
+                for (int y = area.Y; y < areaHeight; y++)
+                {
+                    Color c = bitmap.GetPixel(x, y);
+
+                    r += Convert.ToInt32(c.R);
+                    g += Convert.ToInt32(c.G);
+                    b += Convert.ToInt32(c.B);
+
+                    totalPixels++;
+                }
+            }
+
+            r /= totalPixels;
+            g /= totalPixels;
+            b /= totalPixels;
+
+            return Color.FromArgb(255, (byte)r, (byte)g, (byte)b);
+        }
+
         // https://stackoverflow.com/questions/10355286/programmatically-mouse-click-in-another-window
         public static void ClickWithinWindow(IntPtr wndHandle, Point clientPoint)
         {
