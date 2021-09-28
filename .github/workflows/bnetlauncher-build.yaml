@@ -8,13 +8,13 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: Setup MSBuild Path
-      uses: warrenbuckley/Setup-MSBuild@v1
+      uses: microsoft/setup-msbuild@v1.0.3
        
     - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.2
+      uses: NuGet/setup-nuget@v1
      
     - name: Restore NuGet Packages
       run: nuget restore bnetlauncher.sln
@@ -23,7 +23,7 @@ jobs:
       run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
  
     - name: Upload Artifact
-      uses: actions/upload-artifact@v1.0.0
+      uses: actions/upload-artifact@v2
       with:
         name: bnetlauncher
         path: bin\Release\Publish
