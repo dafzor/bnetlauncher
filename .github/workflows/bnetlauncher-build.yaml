@@ -1,9 +1,9 @@
 name: Build bnetlauncher
- 
+
 on: [push]
- 
+
 jobs:
-  build: 
+  build:
     runs-on: windows-latest
 
     steps:
@@ -23,10 +23,7 @@ jobs:
       run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 
     - name: Copy gamesdb.ini as example
-      uses: canastro/copy-action@0.0.2
-      with:
-        source: bnetlauncher\Resources\gamesdb.ini
-        target: gamesdb.ini.example
+      run: copy bnetlauncher\Resources\gamesdb.ini gamesdb.ini.example
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
