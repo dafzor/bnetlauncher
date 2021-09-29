@@ -27,16 +27,15 @@ jobs:
         copy bnetlauncher\Resources\gamesdb.ini gamesdb.ini.example
         copy bnetlauncher\bin\Release\ILMerge\bnetlauncher.exe bnetlauncher.exe
 
-    - name: Determine Version
-      run: |
-        $r = Get-Content .\bnetlauncher\Properties\AssemblyInfo.cs | Select-String -Pattern 'AssemblyVersion\("(?<version>.*)\.\*'
-        Write-Host "version=$($r.Matches.Groups.Value)" >> $env:GITHUB_ENV
-
+    # - name: Determine Version
+    #   run: |
+    #     $r = Get-Content .\bnetlauncher\Properties\AssemblyInfo.cs | Select-String -Pattern 'AssemblyVersion\("(?<version>.*)\.\*'
+    #     Write-Host "version=$($r.Matches.Groups.Value)" >> $env:GITHUB_ENV
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: "bnetlauncher_${{ env.version }}_nightly"
+        name: "bnetlauncher"
         path: |
           bnetlauncher.exe
           README.md
