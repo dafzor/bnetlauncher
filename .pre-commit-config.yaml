@@ -8,7 +8,8 @@ repos:
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: detect-private-key
+      - id: mixed-line-ending
       - id: check-merge-conflict
       - id: no-commit-to-branch
       - id: check-yaml
+      - id: check-xml
