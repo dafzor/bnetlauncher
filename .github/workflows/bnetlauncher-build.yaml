@@ -41,3 +41,4 @@ jobs:
           README.md
           changelog.txt
           license.txt
+          gamesdb.ini.example
