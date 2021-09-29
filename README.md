@@ -47,7 +47,7 @@ the result should look something like the example or screenshot bellow:
 
 ![Example Screenshot](https://madalien.com/media/uploads/2018/10/steam_parameters_bnetlauncher.png)
 
-Note: bnetlauncher default behavior is to retain the state of the client, so if the client is 
+Note: bnetlauncher default behavior is to retain the state of the client, so if the client is
 not running bnetlauncher will close it, if it's running it will leave it running.
 
 ## Public Test Realm and World of Warcraft Classic
@@ -142,13 +142,13 @@ Explaining what each part does:
   * for battlenet `'%LOCALAPPDATA%\Battle.net\Logs\battle.net*.log'`
   * for battlenet2 `'C:\ProgramData\Battle.net\Setup\<game>\*.log'`
   In the case of epic, just create a desktop shortcut and extract the id from the properties, it will be something like:
-  * `com.epicgames.launcher://apps/<id will be here>?action=launch&silent=true` 
+  * `com.epicgames.launcher://apps/<id will be here>?action=launch&silent=true`
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
     to support 32 and 64 bit builds of the game.
 * `options=noargs,waitforexit` list of comma separated options, currently supported:
   * `noargs` doesn't throw an error when retrieving blank arguments from the game (needed for blackops4.exe)
   * `waitforexit` leave bnetlauncher open and waiting until the game existing (needed for destiny 2 to show you as playing)
-  * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s. This can be 
+  * `nolaunch` don't directly launch the game but just open the client and try to find the game for an additional 60s. This can be
     used launch a game and give time to select a region or other unsupported options.
   * `notask` doesn't start the client trough a scheduled task, this will make the steam overlay also apply to the battle.net client
   * `noadmin` tries to apply compatibility flags to the game to avoid calling the UAC, this is an untested hack that can break the game

@@ -149,7 +149,7 @@ namespace bnetlauncher
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected LockFile lockfile;
 
@@ -267,7 +267,7 @@ namespace bnetlauncher
             public void Create()
             {
 
-                // We explicitly call close on the file we just created so that when we try to delete the file 
+                // We explicitly call close on the file we just created so that when we try to delete the file
                 // it's not locked causing the next launch to also trigger a close of the client.
                 File.Create(FileName).Close();
             }
@@ -287,7 +287,7 @@ namespace bnetlauncher
 
             public void AppendPid()
             {
-               
+
             }
         }
     }

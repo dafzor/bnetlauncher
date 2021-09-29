@@ -44,10 +44,10 @@ namespace bnetlauncher.Clients
 
         /// <summary>
         /// Launches a battle.net client game using it's product code.
-        /// 
+        ///
         /// Using the product code will open the client window on the apropriate
         /// tab after which enter key can be sent to start the game.
-        /// 
+        ///
         /// </summary>
         /// <param name="cmd">Battle.net client ID command to launch.</param>
         public override bool Launch(string cmd)
@@ -59,7 +59,7 @@ namespace bnetlauncher.Clients
                 Logger.Error($"Couldn't find install path for {cmd}");
                 return false;
             }
-            
+
             try
             {
                 // This is the launch parameters used by the blizzard launchers like "World of Warcraft Launcher.exe"
@@ -67,7 +67,7 @@ namespace bnetlauncher.Clients
                 // "diablo3_enus" or "hs_beta" which means there's no patern to it or location i can extract it from.
                 //
                 // However during testing while --game is required it's content doesn't seem to be used for anything
-                // putting in any string would still launch the game correctly, so we just fill the product code so 
+                // putting in any string would still launch the game correctly, so we just fill the product code so
                 // it's not empty.
                 // The other two fields, gamepath and productcode must be correct tough.
                 Process p = Process.Start(Path.Combine(InstallPath, Exe), $"--game={cmd} --gamepath=\"{path}\" --productcode={cmd}");

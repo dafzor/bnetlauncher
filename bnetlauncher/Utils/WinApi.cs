@@ -91,7 +91,7 @@ namespace bnetlauncher.Utils
         //        }
         //    }
 
-        //    return sent;            
+        //    return sent;
         //}
         #endregion unused functions
 

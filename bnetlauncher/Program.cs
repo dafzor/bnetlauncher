@@ -38,7 +38,7 @@
 //
 // Ideas and future todo list t be implemented
 // ===========================================
-// * implement a reusable Form to replace MessageBox (easier to copy text, additional functionality, etc) 
+// * implement a reusable Form to replace MessageBox (easier to copy text, additional functionality, etc)
 // * logger viewer on error and send report to author button (streamline issue reporting)
 // * clean up for internationalization (translations)
 // * proper command option parser
@@ -143,7 +143,7 @@ namespace bnetlauncher
                     "WMI service not running");
             }
 
-            // Logs generic System information for debugging purposes. 
+            // Logs generic System information for debugging purposes.
             LogSystemInfo();
             #endregion
 
@@ -297,7 +297,7 @@ namespace bnetlauncher
             }
 
             // Waits for the mutex to be released before continuing, writes a message every second for debug purposes
-            // we check for time 
+            // we check for time
             var start = DateTime.Now;
             while (!launcher_mutex.WaitOne(1000))
             {
@@ -406,7 +406,7 @@ namespace bnetlauncher
                 }
             }
             while (game_process_id == 0); // keep's retrying until user cancels or game found
-        
+
             // Copies the game process arguments to launch a second copy of the game under this program and kills
             // the current game process that's under the battle.net client.
             var process = new Process() { StartInfo = Processes.GetProcessStartInfoById(game_process_id) };
@@ -448,7 +448,7 @@ namespace bnetlauncher
 
                 Logger.Information($"{selected_game.Id} current process id is {old_pid}");
 
-                stopwatch.Restart();                
+                stopwatch.Restart();
                 while (stopwatch.ElapsedMilliseconds < relaunches_timeout)
                 {
                     foreach (var p in Process.GetProcessesByName(selected_game.Exe))
@@ -460,7 +460,7 @@ namespace bnetlauncher
                             old_pid = process.Id;
                         }
                     }
-                    
+
                     Thread.Sleep(1000); // wait for 1s before retrying to find it
                 }
                 stopwatch.Stop();
@@ -592,7 +592,7 @@ namespace bnetlauncher
             };
 
             Logger.Information("Loading gamedb files.");
-            
+
             var gamedb = new IniData();
 
             foreach (var file in gamedb_files)
@@ -722,7 +722,7 @@ namespace bnetlauncher
             public string hdd_name;
             public string gpu_name;
             public string gpu_driver;
-            public string gpu_ram;            
+            public string gpu_ram;
         }
 
         /// <summary>
@@ -733,7 +733,7 @@ namespace bnetlauncher
             Logger.Information("Getting System details:");
 
             // This information can't be fully trusted since Windows will lie about it's version if we don't include
-            // explicit support in the app.manifest. 
+            // explicit support in the app.manifest.
             Logger.Information($"ENV: {Environment.OSVersion} ({Environment.Version}), {(Environment.Is64BitProcess ? "64" : "32")}bit");
 
 
