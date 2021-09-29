@@ -1,5 +1,8 @@
 Version History
 ---------------
+2.14.1
+* Added Diablo 2: Resurrection
+
 2.14
 + Added Crash Bandicoot 4
 * Documentation cleanup
