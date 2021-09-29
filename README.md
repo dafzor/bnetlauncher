@@ -28,6 +28,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
 |cb4            | Crash Bandicoot 4: It's About Time                    |
+|d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
 |d3ptr          | Diablo 3 Public Test Realm                            |
 |hs             | Heartstone                                            |
