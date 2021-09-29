@@ -22,15 +22,23 @@ jobs:
     - name: Build and Publish
       run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
 
-    - name: Copy gamesdb.ini as example
-      run: copy bnetlauncher\Resources\gamesdb.ini gamesdb.ini.example
+    - name: Copy files for release
+      run: |
+        copy bnetlauncher\Resources\gamesdb.ini gamesdb.ini.example
+        copy bnetlauncher\bin\Release\ILMerge\bnetlauncher.exe bnetlauncher.exe
+
+    - name: Determine Version
+      run: |
+        $r = Get-Content .\bnetlauncher\Properties\AssemblyInfo.cs | Select-String -Pattern 'AssemblyVersion\("(?<version>.*)\.\*'
+        Write-Host "version=$($r.Matches.Groups.Value)" >> $env:GITHUB_ENV
+
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: bnetlauncher
+        name: "bnetlauncher_${{ env.version }}_nightly"
         path: |
-          bnetlauncher\bin\Release\ILMerge\bnetlauncher.exe
+          bnetlauncher.exe
           README.md
           changelog.txt
           license.txt
