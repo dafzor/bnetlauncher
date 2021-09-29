@@ -44,7 +44,7 @@ namespace bnetlauncher.Clients
         /// <summary>
         /// Returns the installation folder of the battle.net client using the installation path
         /// stored in the uninstall entry.
-        /// 
+        ///
         /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
@@ -67,7 +67,7 @@ namespace bnetlauncher.Clients
 
                     //if (match.Success)
                     //{
-                    //    // 
+                    //    //
                     //    return match.Groups[1].Value.Replace(@"\\", @"\");
                     //}
 
@@ -144,7 +144,7 @@ namespace bnetlauncher.Clients
             }
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as
             // well (SystemSurvey.exe, Battle.net Helper.exe).
             // TODO: Find a way to do this that doesn't feel like a hack.
             Thread.Sleep(2000);
@@ -222,16 +222,16 @@ namespace bnetlauncher.Clients
 
         /// <summary>
         /// Gets the installPath for a given productCode.
-        /// 
+        ///
         /// Battle.net Agent keeps a product.db file in protoperf format containing a series
         /// of details about the games included their install location which seem to be stored
         /// in no ther location.
-        /// 
+        ///
         /// This function uses the product code to look for the game, best way to find it is
         /// to create a desktop shortcut for the game, launch it and then open the path
-        /// 'C:\ProgramData\Battle.net\Setup' and check the log files for the code in the 
+        /// 'C:\ProgramData\Battle.net\Setup' and check the log files for the code in the
         /// launch parameters.
-        /// 
+        ///
         /// </summary>
         /// <param name="product_code">product code of the game to look for.</param>
         /// <returns>install path if found. Empty string otherwise.</returns>
@@ -260,10 +260,10 @@ namespace bnetlauncher.Clients
 
         /// <summary>
         /// Returns if the game is ready to launch.
-        /// 
+        ///
         /// File doesn't update when updating.
         /// Only at the end, so this wont work.
-        /// 
+        ///
         /// </summary>
         /// <param name="install_path"></param>
         /// <returns></returns>

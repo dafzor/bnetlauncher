@@ -69,7 +69,7 @@
 //                    Logger.Information($"Waiting for {Id} client to start.");
 //                    Thread.Sleep(100);
 //                }
-                
+
 //                // then wait for it to fully load
 //                //var client = Process.GetProcessesByName(name)[0];
 //                //client.WaitForInputIdle();
@@ -91,7 +91,7 @@
 //            [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = false)]
 //            public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
 //        }
-        
+
 //        private Process game;
 //    }
 //}
