@@ -38,7 +38,7 @@ Version History
 * updated libraries
 
 2.03 (pre-release)
-+ Preliminar support for Call of Duty: Modern Warfare 2019 
++ Preliminar support for Call of Duty: Modern Warfare 2019
 * Updated .NET Framework to 4.7.2
 
 2.02
@@ -61,7 +61,7 @@ Version History
 + added -t option that allows to manually set in seconds how long bnetlauncher waits for the game to start
 + clients are now started using scheduled tasks so steam overlay wont affect them
 + added -l option to leave client open if bnetlauncher started it
-+ no longer leaves tray icon when closing clients (courtesy of Maruf) 
++ no longer leaves tray icon when closing clients (courtesy of Maruf)
 + new logger system with more consistent formatting making it easy to view in proper apps
 + new logger console when running debug builds
 
@@ -149,12 +149,12 @@ Version History
 + Added debug logging that outputs to %LOCALAPPDATA%\madalien.com\Bnet Launcher for Steam
 * Potentially fixed issue that made the application crash when game process took too long to
   start like for example the first boot or non SSD media.
-  
+
 1.4
 - Public release of the source under GPL3
 
 1.?
-- A lot of attempts figuring out how things actually work 
+- A lot of attempts figuring out how things actually work
 
 1.0
 - First version I thought worked but actually didn't
