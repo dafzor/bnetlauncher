@@ -1,0 +1,43 @@
+name: Build bnetlauncher
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Setup MSBuild Path
+      uses: microsoft/setup-msbuild@v1.0.3
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1
+
+    - name: Restore NuGet Packages
+      run: nuget restore bnetlauncher.sln
+
+    - name: Build and Publish
+      run: msbuild bnetlauncher.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
+
+    - name: Copy files for release
+      run: |
+        copy bnetlauncher\Resources\gamesdb.ini gamesdb.ini.example
+        copy bnetlauncher\bin\Release\ILMerge\bnetlauncher.exe bnetlauncher.exe
+
+    # - name: Determine Version
+    #   run: |
+    #     $r = Get-Content .\bnetlauncher\Properties\AssemblyInfo.cs | Select-String -Pattern 'AssemblyVersion\("(?<version>.*)\.\*'
+    #     Write-Host "version=$($r.Matches.Groups.Value)" >> $env:GITHUB_ENV
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: "bnetlauncher"
+        path: |
+          bnetlauncher.exe
+          README.md
+          changelog.txt
+          license.txt
