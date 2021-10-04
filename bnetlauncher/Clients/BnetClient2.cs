@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.Threading;
 using bnetlauncher.Utils;
 using System.Windows.Forms;
-
+using System.Drawing;
 
 namespace bnetlauncher.Clients
 {
@@ -79,19 +79,37 @@ namespace bnetlauncher.Clients
                 while (DateTime.Now.Subtract(start).TotalMinutes < 1)
                 {
                     // Agressivly scans for the battle.net client window to hit the foreground
-                    foreach (var window in Process.GetProcesses())
+                    foreach (var proc in Process.GetProcesses())
                     {
-                        if (window.MainWindowTitle == "Blizzard Battle.net")
+                        if (proc.MainWindowTitle == "Battle.net")
                         {
-                            Logger.Information($"Found windows for battle.net client.");
+                            Logger.Information("Found windows for battle.net client.");
 
                             // Small pause to give time for UI to update before
                             // sending the keypress, no wait will case it to launch
                             // the last game opened.
                             Thread.Sleep(500);
 
-                            // Force the battle.net client to the foreground.
-                            WinApi.SendEnterByHandle(window.MainWindowHandle);
+                            // To get this color check debug bmp in Program.DataPath
+                            var button_color = Color.FromArgb(255, 0, 116, 224);
+                            while (proc.MainWindowHandle == IntPtr.Zero)
+                            {
+                                Thread.Sleep(500);
+                            }
+
+
+                            var button_location = Point.Empty;
+                            for (int i = 0; i < 3; i++)
+                            {
+                                button_location = WinApi.FindColorInProcessMainWindow(proc, button_color);
+                                if (button_location != Point.Empty)
+                                {
+                                    break;
+                                }
+                                Thread.Sleep(100);
+                            }
+                            Logger.Information("Sending Mouse click at window");
+                            WinApi.ClickWithinWindow(proc.MainWindowHandle, button_location);
                             return true;
                         }
                     }

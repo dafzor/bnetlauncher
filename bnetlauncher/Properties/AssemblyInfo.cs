@@ -50,6 +50,6 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("2.14.1.*")]
-//[assembly: AssemblyFileVersion("2.14.*")]
+[assembly: AssemblyVersion("2.15.*")]
+//[assembly: AssemblyFileVersion("2.15.*")]
 [assembly: NeutralResourcesLanguage("en")]
