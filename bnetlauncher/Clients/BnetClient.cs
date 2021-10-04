@@ -45,7 +45,7 @@ namespace bnetlauncher.Clients
         /// <summary>
         /// Returns the installation folder of the battle.net client using the installation path
         /// stored in the uninstall entry.
-        /// 
+        ///
         /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
@@ -68,7 +68,7 @@ namespace bnetlauncher.Clients
 
                     //if (match.Success)
                     //{
-                    //    // 
+                    //    //
                     //    return match.Groups[1].Value.Replace(@"\\", @"\");
                     //}
 
@@ -135,7 +135,7 @@ namespace bnetlauncher.Clients
             {
                 Logger.Information("Starting the client trough task.");
                 var task_name = Id + (elevated ? "_admin" : "");
-                      
+
                 if (!Tasker.CreateAndRun(task_name, Path.Combine(InstallPath, Exe), elevated))
                 {
                     Logger.Warning("Failed to start client trough task.");
@@ -149,7 +149,7 @@ namespace bnetlauncher.Clients
             }
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as
             // well (SystemSurvey.exe, Battle.net Helper.exe).
             // TODO: Find a way to do this that doesn't feel like a hack.
             Thread.Sleep(2000);
@@ -164,43 +164,12 @@ namespace bnetlauncher.Clients
         /// <returns>number of battle.net helper processes required.</returns>
         protected int GetHelperProcessCount()
         {
+            // Since WoW shadowlands launch the non beta Battle.net Client requires the UI to fully
+            // load before accepting commands, and disabling GPU acelaration no longers reduces the
+            // thread count by one, so this value is now a constant 3, function remains in case this
+            // changes again in the future.
+            // NOTE: See code before tag 2.12 for previous function if needed.
             return 3;
-
-            //// Ideally I'd use a JSON library and properly parse the battle.net config file, but that
-            //// would add a library dependency to the project so instead we'll do the hackish alternative
-            //// of just regexing the config file.
-            //try
-            //{
-            //    // Location of the battle.net client configuration file in JSON
-            //    var bnet_config_file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            //        "Battle.net", "Battle.net.config");
-
-            //    // Read the config file into a string
-            //    var bnet_config = File.ReadAllText(bnet_config_file);
-
-            //    // Use a Regular expression to search for the HardwareAcceleration option and see if it's ON or OFF
-            //    // if it's ON then the client will have at least 2 Battle.net Helper running.
-            //    var match = Regex.Match(bnet_config, "\"HardwareAcceleration\":.*\"(true|false)\"");
-
-            //    if (match.Success)
-            //    {
-            //        if (match.Groups[1].Value.Equals("true", StringComparison.OrdinalIgnoreCase))
-            //        {
-            //            return 2;
-            //        }
-            //        else
-            //        {
-            //            // Hardware acceleration is off, so no GPU battle.net helper
-            //            return 1;
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Error($"Error reading '{Id}' config file.", ex);
-            //}
-
-            //return 2;
         }
 
         /// <summary>
@@ -258,16 +227,16 @@ namespace bnetlauncher.Clients
 
         /// <summary>
         /// Gets the installPath for a given productCode.
-        /// 
+        ///
         /// Battle.net Agent keeps a product.db file in protoperf format containing a series
         /// of details about the games included their install location which seem to be stored
         /// in no ther location.
-        /// 
+        ///
         /// This function uses the product code to look for the game, best way to find it is
         /// to create a desktop shortcut for the game, launch it and then open the path
-        /// 'C:\ProgramData\Battle.net\Setup' and check the log files for the code in the 
+        /// 'C:\ProgramData\Battle.net\Setup' and check the log files for the code in the
         /// launch parameters.
-        /// 
+        ///
         /// </summary>
         /// <param name="product_code">product code of the game to look for.</param>
         /// <returns>install path if found. Empty string otherwise.</returns>
@@ -296,10 +265,10 @@ namespace bnetlauncher.Clients
 
         /// <summary>
         /// Returns if the game is ready to launch.
-        /// 
+        ///
         /// File doesn't update when updating.
         /// Only at the end, so this wont work.
-        /// 
+        ///
         /// </summary>
         /// <param name="install_path"></param>
         /// <returns></returns>

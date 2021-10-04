@@ -44,7 +44,7 @@ namespace bnetlauncher.Clients
         /// <summary>
         /// Returns the installation folder of the battle.net client using the installation path
         /// stored in the uninstall entry.
-        /// 
+        ///
         /// TODO: Make sure this is the best way to get the installation path now that it's so important.
         /// </summary>
         /// <returns>The path to the battle.net client folder without trailing slash</returns>
@@ -134,7 +134,7 @@ namespace bnetlauncher.Clients
             }
             // If battle.net client is starting fresh it will use a intermediary Battle.net process to start, we need
             // to make sure we don't get that process id but the actual client's process id. To work around it we wait
-            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as 
+            // 2s before trying to get the process id. Also we wait an extra bit so that the child processes start as
             // well (SystemSurvey.exe, Battle.net Helper.exe).
             // TODO: Find a way to do this that doesn't feel like a hack.
             Thread.Sleep(2000);
@@ -171,7 +171,7 @@ namespace bnetlauncher.Clients
                     // Epic launches a series of helper CEF render processes giving them a sequencial id,
                     // only after the 4th one launches is the client actually ready to take commands.
                     using (var searcher = new ManagementObjectSearcher(
-                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'UnrealCEFSubProcess.exe' AND CommandLine LIKE '%--renderer-client-id=4%'"))
+                        $"SELECT ProcessId FROM Win32_Process WHERE ParentProcessId = {GetProcessId()} AND Name LIKE 'EpicWebHelper.exe' AND CommandLine LIKE '%--renderer-client-id=4%'"))
                     {
                         last_helper_started = searcher.Get().Count > 0;
                     }

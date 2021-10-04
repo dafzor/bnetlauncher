@@ -65,7 +65,7 @@ namespace bnetlauncher.Utils
             if (elevated) {
                 td.Principal.RunLevel = TaskRunLevel.Highest;
             }
-            
+
             td.RegistrationInfo.Description = $"{VersionInfo.FileMajorPart}.{VersionInfo.FileMinorPart}";
 
             td.Settings.AllowDemandStart = true;
