@@ -53,11 +53,9 @@ not running bnetlauncher will close it, if it's running it will leave it running
 
 ## Public Test Realm and World of Warcraft Classic
 
-With the release of the the new client in 2021 it's no longer possible to launch PTR and Classic version
-of games without manual interaction.
-
-If you're brave enough there's an untested [experimental 2.15 version](https://github.com/dafzor/bnetlauncher/releases/tag/v2.15exp)
-that tries to restore that functionality.
+With the release of the the new client in 2021 the previous methods to launch PTR and Classic version no longer work.
+This version includes experimental fix for the issue that may not always work. If game doesn't launch automaticall
+manual interaction to press the play button will be required.
 
 ## Troubleshooting
 
@@ -67,8 +65,9 @@ you can open the location by pasting the path into explorer or the run dialog in
 ## Known Issues
 
 * Launching WoW Classic and PTR version of game was dependant on enter key press defaulting to play button.
-  As of latest client version, this is no longer the case, so launching those versions requires a key press.
-* Slow computers might take too long causing to bnetlauncher to think something went wrong, see aditional options
+  As of latest client version, this is no longer the case, there's experimental code to work around it but
+  it may not always work, if the game doesn't launch pressing the play key will be required.
+* Slow computers might take too long causing to bnetlauncher to think something went wrong, see additional options
   on how to use --timeout to fix it.
 * Enabling multiple instances of battle.net client in it's options might break bnetlauncher functionality.
 * Users of MSI Afterburner, Fraps and other overlay software might experience crashes do to incompatibility
