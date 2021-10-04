@@ -4,11 +4,12 @@ default_language_version:
     python: python3
 repos:
   - repo: git://github.com/pre-commit/pre-commit-hooks
-    rev: v3.1.0
+    rev: v4.0.1
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
-      - id: detect-private-key
+      - id: mixed-line-ending
       - id: check-merge-conflict
       - id: no-commit-to-branch
       - id: check-yaml
+      - id: check-xml

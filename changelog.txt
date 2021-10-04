@@ -1,8 +1,13 @@
 Version History
 ---------------
+2.15
+* Experimental fix for launching alternative games editions such as WoW Classic
+* Added Diablo 2: Resurrection support
+
 2.14
 + Added Crash Bandicoot 4
 * Documentation cleanup
+
 
 2.13
 + Added some additional free Epic games entries.
