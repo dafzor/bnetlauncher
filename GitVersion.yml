@@ -1,0 +1,3 @@
+mode: Mainline
+tag-prefix: v
+commit-message-incrementing: MergeMessageOnly
