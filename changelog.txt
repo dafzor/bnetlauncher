@@ -1,8 +1,11 @@
 Version History
 ---------------
+2.16
++ Added Call of Duty: Vanguard support
+
 2.15
++ Added Diablo 2: Resurrection support
 * Experimental fix for launching alternative games editions such as WoW Classic
-* Added Diablo 2: Resurrection support
 
 2.14
 + Added Crash Bandicoot 4
