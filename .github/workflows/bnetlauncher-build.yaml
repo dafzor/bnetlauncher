@@ -1,4 +1,4 @@
-name: Build bnetlauncher
+name: Build
 
 on: [push]
 
