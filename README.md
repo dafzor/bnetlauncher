@@ -12,6 +12,8 @@ I'm no longer a user of it.
 Contributions are still accepted (new games, features, etc) but other then those no further developments
 will be made.
 
+There still other launcher project in active development like [Launchpad](https://github.com/VolantisDev/Launchpad) in case bnetlauncher no longer works for you.
+
 ## Purpose
 
 This application is intended to facilitate the launch of battle.net games from steam with overlay
