@@ -1,5 +1,9 @@
 Version History
 ---------------
+
+2.17
++ Added Diablo Immortal support courtesy of KyleStilkey
+
 2.16
 + Added Call of Duty: Vanguard support
 
