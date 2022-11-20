@@ -63,13 +63,13 @@ namespace bnetlauncher.Clients
             try
             {
                 // This is the launch parameters used by the blizzard launchers like "World of Warcraft Launcher.exe"
-                // While the --game parameter is not suposed to be product code but a specific string like "wow_enus",
-                // "diablo3_enus" or "hs_beta" which means there's no patern to it or location i can extract it from.
+                // While the --game parameter is not supposed to be product code but a specific string like "wow_enus",
+                // "diablo3_enus" or "hs_beta" which means there's no pattern to it or location i can extract it from.
                 //
                 // However during testing while --game is required it's content doesn't seem to be used for anything
                 // putting in any string would still launch the game correctly, so we just fill the product code so
                 // it's not empty.
-                // The other two fields, gamepath and productcode must be correct tough.
+                // The other two fields, gamepath and productcode must be correct though.
                 Process p = Process.Start(Path.Combine(InstallPath, Exe), $"--game={cmd} --gamepath=\"{path}\" --productcode={cmd}");
                 p.WaitForExit();
 
