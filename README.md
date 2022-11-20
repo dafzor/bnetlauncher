@@ -37,6 +37,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |codbocw        | Call of Duty: Black Ops Cold War                      |
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
+|codmw2         | Call of Duty: Modern Warfare 2 + Warzone 2            |
 |cb4            | Crash Bandicoot 4: It's About Time                    |
 |d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
@@ -175,3 +176,4 @@ Explaining what each part does:
 * github jbzdarkid for fixing some typos in the documentation.
 * github jacobmix for crash bandicoot 4 addition
 * github KyleStilkey for Diablo Immortal support
+* github d3rt0xx for MW2 & WZ2.0 support
