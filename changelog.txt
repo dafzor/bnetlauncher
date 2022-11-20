@@ -2,7 +2,7 @@ Version History
 ---------------
 
 2.18
-+ Added MW2 & WZ2.0 support courtesy of d3rt0xx
++ Added Call of Duty: Modern Warfare 2 + Warzone 2 support courtesy of d3rt0xx
 + Added Epic Borderlands 3 support
 
 2.17
