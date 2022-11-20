@@ -1,6 +1,6 @@
 name: Build bnetlauncher
 
-on: workflow_dispatch
+on: [push]
 
 jobs:
   build:
