@@ -153,8 +153,7 @@ Explaining what each part does:
   case sensitive! With battlenet2 it's the game's productCode. Those values can be discovered by looking at logs in different locations:
   * for battlenet `'%LOCALAPPDATA%\Battle.net\Logs\battle.net*.log'`
   * for battlenet2 `'C:\ProgramData\Battle.net\Setup\<game>\*.log'`
-  In the case of epic, just create a desktop shortcut and extract the id from the properties, it will be something like:
-  * `com.epicgames.launcher://apps/<id will be here>?action=launch&silent=true`
+  * for epic, create a desktop shortcut (on launcher manage on tree dot menu then create shortcut) and extract the id from the URL field in the created shortcut properties, it will be something like: `com.epicgames.launcher://apps/<id will be here>?action=launch&silent=true`
 * `exe=BlackOps4.exe` game exe that bnetlauncher will look for after launch, can use `%` as a wildcard ie `Diablo III%.exe`
     to support 32 and 64 bit builds of the game.
 * `options=noargs,waitforexit` list of comma separated options, currently supported:
