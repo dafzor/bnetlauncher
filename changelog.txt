@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+2.19
++ Added Diablo IV Beta support courtesy of Sectimus
+
 2.18
 + Added Call of Duty: Modern Warfare 2 + Warzone 2 support courtesy of d3rt0xx
 + Added Epic Borderlands 3 support
