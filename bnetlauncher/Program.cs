@@ -431,7 +431,7 @@ namespace bnetlauncher
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to relaunch game under bnetliancher.", ex);
+                Logger.Error("Failed to relaunch game under bnetlauncher.", ex);
                 ShowMessageAndExit("Failed to relaunch game under bnetlauncher/steam.\nOverlay will not work.",
                     "Failed to Launch");
             }
