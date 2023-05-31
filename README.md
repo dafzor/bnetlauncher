@@ -42,7 +42,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
 |d3ptr          | Diablo 3 Public Test Realm                            |
-|d4beta         | Diablo IV Beta                                        |
+|d4             | Diablo IV Beta                                        |
 |di             | Diablo Immortal                                       |
 |hs             | Heartstone                                            |
 |hots           | Heroes of the Storm                                   |
@@ -177,4 +177,4 @@ Explaining what each part does:
 * github jacobmix for crash bandicoot 4 addition
 * github KyleStilkey for Diablo Immortal support
 * github d3rt0xx for MW2 & WZ2.0 support
-* github Sectimus for Diablo IV Beta support
+* github Sectimus for Diablo IV support
