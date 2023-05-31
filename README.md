@@ -42,7 +42,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
 |d3ptr          | Diablo 3 Public Test Realm                            |
-|d4             | Diablo IV Beta                                        |
+|d4             | Diablo IV                                             |
 |di             | Diablo Immortal                                       |
 |hs             | Heartstone                                            |
 |hots           | Heroes of the Storm                                   |
