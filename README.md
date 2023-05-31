@@ -177,3 +177,4 @@ Explaining what each part does:
 * github jacobmix for crash bandicoot 4 addition
 * github KyleStilkey for Diablo Immortal support
 * github d3rt0xx for MW2 & WZ2.0 support
+* github Sectimus for Diablo IV Beta support
