@@ -1,5 +1,10 @@
 Version History
 ---------------
+2.21
++ Changed Diablo IV launch argument based on license change
+
+2.20
++ Added Diablo IV support and removing Diablo IV Beta support courtesy of Sectimus
 
 2.19
 + Added Diablo IV Beta support courtesy of Sectimus
