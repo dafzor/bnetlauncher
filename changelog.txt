@@ -1,5 +1,7 @@
 Version History
 ---------------
+2.21
++ Changed Diablo IV launch argument based on licence change
 
 2.20
 + Added Diablo IV support and removing Diablo IV Beta support courtesy of Sectimus
