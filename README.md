@@ -53,6 +53,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |w3             | Warcraft 3: Reforged                                  |
 |wow            | World of Warcraft                                     |
 |wowclassic     | World of Warcraft Classic                             |
+|wowclassicera  | World of Warcraft Classic Era                         |
 |wowptr         | World of Warcraft Public Test Realm                   |
 
 the result should look something like the example or screenshot bellow:
@@ -178,3 +179,4 @@ Explaining what each part does:
 * github KyleStilkey for Diablo Immortal support
 * github d3rt0xx for MW2 & WZ2.0 support
 * github Sectimus for Diablo IV support
+* github Sectimus for WoW Classic Era support
