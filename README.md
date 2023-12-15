@@ -38,7 +38,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
 |codmw2         | Call of Duty: Modern Warfare 2 + Warzone 2            |
-|codmw3         | Call of Duty: Modern Warfare III (2023)               |
+|codhq          | Call of Duty HQ (MW3 2023 and up)                     |
 |cb4            | Crash Bandicoot 4: It's About Time                    |
 |d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
