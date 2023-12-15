@@ -1,5 +1,8 @@
 Version History
 ---------------
+2.24
++ Added Call of Duty HQ support for MW2, MW3 and up.
+
 2.23
 + Added World of Warcraft Classic Era support courtesy of Sectimus 
 
