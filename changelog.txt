@@ -1,5 +1,8 @@
 Version History
 ---------------
+2.24
++ Added Modern Warfare II support
+
 2.23
 + Added World of Warcraft Classic Era support courtesy of Sectimus 
 
