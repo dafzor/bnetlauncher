@@ -38,6 +38,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |codmw2019      | Call of Duty: Modern Warfare (2019)                   |
 |codmw2crm      | Call of Duty: Modern Warfare 2 Campaign Remastered    |
 |codmw2         | Call of Duty: Modern Warfare 2 + Warzone 2            |
+|codmw3         | Call of Duty: Modern Warfare III (2023)               |
 |cb4            | Crash Bandicoot 4: It's About Time                    |
 |d2r            | Diablo 2: Resurrected                                 |
 |d3             | Diablo 3                                              |
@@ -180,3 +181,4 @@ Explaining what each part does:
 * github d3rt0xx for MW2 & WZ2.0 support
 * github Sectimus for Diablo IV support
 * github Sectimus for WoW Classic Era support
+* github LazymanOnGithub for MW3 2023 support
