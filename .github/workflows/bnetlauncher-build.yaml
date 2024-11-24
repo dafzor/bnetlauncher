@@ -8,13 +8,13 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup MSBuild Path
-      uses: microsoft/setup-msbuild@v1.0.3
+      uses: microsoft/setup-msbuild@v2
 
     - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1
+      uses: NuGet/setup-nuget@v2
 
     - name: Restore NuGet Packages
       run: nuget restore bnetlauncher.sln
@@ -33,7 +33,7 @@ jobs:
     #     Write-Host "version=$($r.Matches.Groups.Value)" >> $env:GITHUB_ENV
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: "bnetlauncher"
         path: |
