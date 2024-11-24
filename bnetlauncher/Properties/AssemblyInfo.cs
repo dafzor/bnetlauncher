@@ -1,7 +1,6 @@
 ﻿using System.Resources;
 // Copyright (C) 2016-2018 madalien.com
 // This file is part of bnetlauncher.
-//
 // bnetlauncher is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -50,6 +49,6 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("2.23.*")]
+[assembly: AssemblyVersion("2.24.*")]
 //[assembly: AssemblyFileVersion("2.23.*")]
 [assembly: NeutralResourcesLanguage("en")]
