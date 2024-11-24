@@ -51,6 +51,8 @@ with minimal/no interaction with the battle.net client while still being automat
 |owptr          | Overwatch Public Test Realm                           |
 |scr            | Starcraft Remastered                                  |
 |sc2            | Starcraft 2                                           |
+|w1r            | Warfraft I: Remastered                                |
+|w2r            | Warfraft II: Remastered                               |
 |w3             | Warcraft 3: Reforged                                  |
 |wow            | World of Warcraft                                     |
 |wowclassic     | World of Warcraft Classic                             |
@@ -182,3 +184,4 @@ Explaining what each part does:
 * github Sectimus for Diablo IV support
 * github Sectimus for WoW Classic Era support
 * github LazymanOnGithub for MW3 2023 support
+* github Aqvilinus for Warcraft I/II remastered support
