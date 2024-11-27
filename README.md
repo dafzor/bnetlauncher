@@ -12,7 +12,7 @@ I'm no longer a user of it.
 Contributions are still accepted (new games, features, etc) but other then those no further developments
 will be made.
 
-There still other launcher project in active development like [Launchpad](https://github.com/VolantisDev/Launchpad) in case bnetlauncher no longer works for you.
+There are still other launcher projects in active development like [Battlenet-Launcher](https://github.com/ShizCalev/Battlenet-Launcher) in case bnetlauncher no longer works for you.
 
 ## Purpose
 
