@@ -186,3 +186,4 @@ Explaining what each part does:
 * github Sectimus for WoW Classic Era support
 * github LazymanOnGithub for MW3 2023 support
 * github Aqvilinus for Warcraft I/II remastered support
+* github magnww for World of Warcraft Titan Reforged Classic support
