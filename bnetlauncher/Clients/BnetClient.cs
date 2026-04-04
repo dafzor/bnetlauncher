@@ -247,11 +247,11 @@ namespace bnetlauncher.Clients
                 db = Serializer.Deserialize<Database>(file);
                 foreach (ProductInstall pi in db.productInstalls)
                 {
-                    if (pi.productCode.Equals(product_code, StringComparison.OrdinalIgnoreCase))
+                    if (pi.productCode.Equals(product_code, StringComparison.OrdinalIgnoreCase) ||
+                        pi.Uid.Equals(product_code, StringComparison.OrdinalIgnoreCase))
                     {
                         Logger.Information($"Found install path '{pi.Settings.installPath}'.");
                         return pi.Settings.installPath;
-
                     }
                 }
             }

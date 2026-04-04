@@ -58,6 +58,7 @@ with minimal/no interaction with the battle.net client while still being automat
 |wowclassic     | World of Warcraft Classic                             |
 |wowclassicera  | World of Warcraft Classic Era                         |
 |wowclassictitan| World of Warcraft Titan Reforged Classic              |
+|wow_anniversary| World of Warcraft Burning Crusade Anniversary         |
 |wowptr         | World of Warcraft Public Test Realm                   |
 
 the result should look something like the example or screenshot bellow:

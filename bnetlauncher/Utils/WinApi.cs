@@ -91,6 +91,12 @@ namespace bnetlauncher.Utils
 
             [DllImport("user32.dll")]
             public static extern uint SendInput(uint nInputs, [MarshalAs(UnmanagedType.LPArray), In] INPUT[] pInputs, int cbSize);
+
+            [DllImport("user32.dll")]
+            public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+            public const int SW_RESTORE = 9;
+            public const int SW_SHOWMAXIMIZED = 3;
         }
 
         #region Unusued functions
@@ -186,7 +192,14 @@ namespace bnetlauncher.Utils
             NativeMethods.GetWindowRect(new HandleRef(proc, proc.MainWindowHandle), out wnd);
             Logger.Information($"Found window at position: {wnd.Top},{wnd.Left}.");
 
-            var bmp = new Bitmap(wnd.Right - wnd.Left, wnd.Bottom - wnd.Top);  // content only
+            int width = wnd.Right - wnd.Left;
+            int height = wnd.Bottom - wnd.Top;
+            if (width <= 0 || height <= 0)
+            {
+                Logger.Warning($"Window has invalid size {width}x{height}, skipping capture.");
+                return new Bitmap(1, 1);
+            }
+            var bmp = new Bitmap(width, height);  // content only
 
             using (Graphics graphics = Graphics.FromImage(bmp))
             {
@@ -197,26 +210,45 @@ namespace bnetlauncher.Utils
             return bmp;
         }
 
-        public static Point FindColorInProcessMainWindow(Process proc, Color color,
-            int xDivider = 4, int yDivider = 4)
+        public static Point FindColorInProcessMainWindow(Process proc, Color color)
         {
             var bmp = CaptureProcessMainWindow(proc);
             bmp.Save(Path.Combine(Program.DataPath, $"{proc.ProcessName}_window_capture.bmp"));
 
-            for (int y = bmp.Height - 1; y > (bmp.Height - (bmp.Height / yDivider)); y--)
+            // Search only the bottom 200px and left 400px - that's where the Play button lives.
+            // Scanning the full window picks up banners and icons that share the same blue color.
+            int searchLeft = Math.Min(400, bmp.Width);
+            int searchTop = Math.Max(0, bmp.Height - 200);
+
+            int minX = int.MaxValue, maxX = int.MinValue;
+            int minY = int.MaxValue, maxY = int.MinValue;
+            bool found = false;
+
+            for (int y = bmp.Height - 1; y >= searchTop; y--)
             {
-                for (int x = 0; x < (bmp.Width / xDivider); x++)
+                for (int x = 0; x < searchLeft; x++)
                 {
                     var pixel = bmp.GetPixel(x, y);
                     if (pixel == color)
                     {
-                        bmp.Dispose();
-                        Logger.Information($"Found color {color} in Window at {x},{y}");
-                        return new Point(x, y);
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                        found = true;
                     }
                 }
             }
+
             bmp.Dispose();
+
+            if (found)
+            {
+                var center = new Point((minX + maxX) / 2, (minY + maxY) / 2);
+                Logger.Information($"Found color {color} in Window at {center.X},{center.Y} (bounds: {minX},{minY}-{maxX},{maxY})");
+                return center;
+            }
+
             Logger.Warning("Couldn't find color in Window.");
             return Point.Empty;
         }

@@ -85,29 +85,34 @@ namespace bnetlauncher.Clients
                         {
                             Logger.Information("Found windows for battle.net client.");
 
-                            // Small pause to give time for UI to update before
-                            // sending the keypress, no wait will case it to launch
-                            // the last game opened.
-                            Thread.Sleep(500);
-
-                            // To get this color check debug bmp in Program.DataPath
-                            var button_color = Color.FromArgb(255, 0, 116, 224);
                             while (proc.MainWindowHandle == IntPtr.Zero)
                             {
                                 Thread.Sleep(500);
                             }
 
+                            Logger.Information("Maximizing battle.net window.");
+                            WinApi.NativeMethods.ShowWindow(proc.MainWindowHandle, WinApi.NativeMethods.SW_SHOWMAXIMIZED);
+
+                            // To get this color check debug bmp in Program.DataPath
+                            var button_color = Color.FromArgb(255, 0, 116, 224);
 
                             var button_location = Point.Empty;
-                            for (int i = 0; i < 3; i++)
+                            for (int i = 0; i < 10; i++)
                             {
                                 button_location = WinApi.FindColorInProcessMainWindow(proc, button_color);
                                 if (button_location != Point.Empty)
                                 {
                                     break;
                                 }
-                                Thread.Sleep(100);
+                                Thread.Sleep(500);
                             }
+
+                            if (button_location == Point.Empty)
+                            {
+                                Logger.Warning("Play button not found after retries, skipping click.");
+                                return false;
+                            }
+
                             Logger.Information("Sending Mouse click at window");
                             WinApi.ClickWithinWindow(proc.MainWindowHandle, button_location);
                             return true;
