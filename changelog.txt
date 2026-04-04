@@ -1,7 +1,11 @@
 Version History
 ---------------
+2.26
++ Added for World of Warcraft Burning Crusade Anniversary support courtesy of AdamsGH
+* Optimizations for launching games dependent on button click courtesy of AdamsGH
+
 2.25
-+ Added World of Warcraft Titan Reforged Classic support courtesy of  magnww
++ Added World of Warcraft Titan Reforged Classic support courtesy of magnww
 
 2.24
 + Added Call of Duty HQ support for MW2, MW3 and up.
