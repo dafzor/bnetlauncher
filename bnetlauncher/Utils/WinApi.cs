@@ -215,10 +215,11 @@ namespace bnetlauncher.Utils
             var bmp = CaptureProcessMainWindow(proc);
             bmp.Save(Path.Combine(Program.DataPath, $"{proc.ProcessName}_window_capture.bmp"));
 
-            // Search only the bottom 200px and left 400px - that's where the Play button lives.
+            // Search only the bottom-left part of the window - that's where the Play button lives.
             // Scanning the full window picks up banners and icons that share the same blue color.
-            int searchLeft = Math.Min(400, bmp.Width);
-            int searchTop = Math.Max(0, bmp.Height - 200);
+            // The area is proportional so it still covers the button on large windows / high DPI scaling.
+            int searchLeft = bmp.Width * 30 / 100;
+            int searchTop = bmp.Height * 60 / 100;
 
             int minX = int.MaxValue, maxX = int.MinValue;
             int minY = int.MaxValue, maxY = int.MinValue;
